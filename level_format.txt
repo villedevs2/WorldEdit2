@@ -1,0 +1,77 @@
+Balance Level Format Specification
+v1.2 / 13.11.2016
+
+Header
+------
+
+4 bytes		| Format ID (BLBX) 
+4 bytes		| Header version (0x00010000)
+4 bytes		| Number of objects
+n bytes		| Texture name (null-terminated)
+4 bytes		| Level Min X
+4 bytes		| Level Max X
+4 bytes		| Level Min Y
+4 bytes		| Level Max Y
+4 bytes		| Num level affixes
+n bytes		| Level affixes
+n bytes		| Objects
+4 bytes		| Number of tiles
+n bytes		| Tiles
+4 bytes		| Tilemap xstart
+4 bytes		| Tilemap xend
+4 bytes		| Tilemap ystart
+4 bytes		| Tilemap yend
+4 bytes		| Tilemap tile size (float)
+n bytes		| Tilemap data [2 bytes * width * height] (values saved as +1)
+		  Var byte encoding (0xxxxxxx = 1 byte, 1xxxxxxx xxxxxxxx = 2 bytes)
+
+Object
+------
+
+4 bytes		| Object ID (BLOX)
+4 bytes		| Object Type
+4 bytes		| Num points
+4 bytes		| Object Z
+n bytes		| Points
+n bytes		| Parameters (1-8, depending on object type)
+
+Point structure
+---------------
+
+4 bytes		| X-coordinate (float)
+4 bytes		| Y-coordinate (float)
+4 bytes		| U-coordinate (float)
+4 bytes		| V-coordinate (float)
+
+Object parameters
+----------
+
+Geometry (1)	| No params
+Decoration (2)	| No params
+Slider (3)	| 0 = Angle
+Trigger	(4)	| 0 = Trigger type, 1 = Angle, 2 = int parameter, 3 = int parameter
+Destructible (5)| No params
+Mover (6)	| 0 = Angle, 1 = Length, 2 = Up time, 3 = Down time, 4 = Time
+
+Tile
+----
+
+4 bytes		| Tile ID (TLEX)
+32 bytes	| UV coords [4x UV-pairs]
+
+Level affix
+-----------
+
+4 bytes		| Affix ID (LAFX)
+4 bytes		| Affix type
+n bytes		| Parameters (1-8, depending on affix type)
+
+Affix parameters
+----------------
+
+Time limit (1)		| 0 = Time: minutes (1 byte), seconds (1 byte)
+Collect	(2)		| 0 = Number of items, 1 = Collectable type
+Don't collect (3)	| 0 = Collectable type
+Don't hit hazards (4)	| No params
+Find exit (5)		| No params
+Inverse gravity (6)	| No params

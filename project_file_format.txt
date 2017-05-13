@@ -1,0 +1,68 @@
+Balance Project Binary File Format
+v1.1 / 16.11.2016
+
+Header
+------
+
+4 bytes		| Format ID (BLPF)
+4 bytes		| Header version 0x10001
+n bytes		| Texture atlas name (null-terminated)
+
+4 bytes		| Num of prefabs
+n bytes		| Prefab structures
+
+4 bytes		| Num of objects
+4 bytes		| Object ID (BLOX)
+n bytes		| Object structures
+
+4 bytes		| Num of tiles
+4 bytes		| Tile ID (TLEX)
+n bytes		| Tile structures
+
+4 bytes		| Tilemap xstart
+4 bytes		| Tilemap xend
+4 bytes		| Tilemap ystart
+4 bytes		| Tilemap yend
+4 bytes		| Tilemap tile size (float)
+n bytes		| Tilemap data [4 bytes * width * height]
+
+4 bytes		| Affix list ID (AFXX)
+4 bytes		| Time limit enable
+4 bytes		| Time limit (1 byte mins, 1 byte secs)
+4 bytes		| Collect 1 enable
+n bytes		| Collect 1 item (null-terminated string)
+4 bytes		| Collect 1 num
+4 bytes		| Collect 2 enable
+n bytes		| Collect 2 item (null-terminated string)
+4 bytes		| Collect 2 num
+4 bytes		| Collect 3 enable
+n bytes		| Collect 3 item (null-terminated string)
+4 bytes		| Collect 3 num
+4 bytes		| Don't collect enable
+4 bytes		| Don't collect item
+4 bytes		| Avoid hazards enable
+4 bytes		| Find exit enable
+4 bytes		| Inverse gravity enable
+
+Prefab structure
+----------------
+
+n bytes		| Prefab name (null-terminated)
+4 bytes		| Num points
+n bytes		| Points [4 floats: X, Y, U, V]
+
+Object structure
+----------------
+
+n bytes		| Object name (null-terminated)
+4 bytes		| Object type
+4 bytes		| Object Z
+4 bytes		| Num points
+n bytes		| Points [4 floats: X, Y, U, V]
+8 dwords	| Params
+
+Tile structure
+--------------
+
+n bytes		| Tile name (null-terminated)
+n bytes		| 4x [2 floats: U, V]
