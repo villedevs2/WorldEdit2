@@ -1,12 +1,11 @@
 #pragma once
 
 #include <glm.hpp>
+#include <vector>
 
 class PolygonDef
 {
 public:
-	static const int CAPACITY_MAX = 8;
-
 	enum Status
 	{
 		POLY_STATUS_OK = 0,
@@ -14,12 +13,13 @@ public:
 		POLY_STATUS_NONCONVEX,
 	};
 
-	PolygonDef();
+	PolygonDef(int capacity);
 	~PolygonDef();
 
 	PolygonDef::Status insertPoint(glm::vec2 point);
 	void deleteLatest();
 	int getNumPoints();
+	int getCapacity();
 	void reset();
 	glm::vec2 getPoint(int index);
 	bool convexTest(glm::vec2 point);
@@ -31,6 +31,6 @@ public:
 	bool isPointOnEdge(glm::vec2 point, int v1, int v2, float threshold);
 
 private:
-	glm::vec2 m_points[CAPACITY_MAX];
-	int m_num_points;
+	std::vector<glm::vec2> m_points;
+	int m_capacity;
 };

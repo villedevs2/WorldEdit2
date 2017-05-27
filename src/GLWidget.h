@@ -103,6 +103,7 @@ protected:
 	void mouseMoveEvent(QMouseEvent* event);
 	void keyReleaseEvent(QKeyEvent* event);
 	void keyPressEvent(QKeyEvent* event);
+	void paintEvent(QPaintEvent *e);
 
 private:
 	static const int LEVEL_VIS_WIDTH = 64;

@@ -1,8 +1,9 @@
 #include "PolygonDef.h"
 
-PolygonDef::PolygonDef()
+PolygonDef::PolygonDef(int capacity)
 {
-	m_num_points = 0;
+	m_capacity = capacity;
+	m_points.clear();
 }
 
 PolygonDef::~PolygonDef()
@@ -11,10 +12,10 @@ PolygonDef::~PolygonDef()
 
 bool PolygonDef::convexTest(glm::vec2 point)
 {	
-	if (m_num_points >= 2)
+	if (m_points.size() >= 2)
 	{
 		// check convexity
-		for (int i=1; i < m_num_points; i++)
+		for (int i=1; i < m_points.size(); i++)
 		{
 			glm::vec2 ap0 = m_points[i-1];
 			glm::vec2 ap1 = m_points[i];
@@ -34,15 +35,15 @@ bool PolygonDef::convexTest(glm::vec2 point)
 
 bool PolygonDef::fullConvexTest()
 {
-	if (m_num_points >= 2)
+	if (m_points.size() >= 2)
 	{
 		// check convexity
-		for (int i=1; i < m_num_points; i++)
+		for (int i=1; i < m_points.size(); i++)
 		{
 			glm::vec2 ap0, ap1, ap2;
 			ap0 = m_points[i-1];
 			ap1 = m_points[i];
-			if (i == (m_num_points-1))
+			if (i == (m_points.size()-1))
 				ap2 = m_points[0];
 			else
 				ap2 = m_points[i+1];
@@ -63,7 +64,7 @@ bool PolygonDef::fullConvexTest()
 
 PolygonDef::Status PolygonDef::insertPoint(glm::vec2 point)
 {
-	if (m_num_points >= CAPACITY_MAX)
+	if (m_points.size() >= m_capacity)
 		return POLY_STATUS_CAPACITY;
 
 
@@ -73,39 +74,42 @@ PolygonDef::Status PolygonDef::insertPoint(glm::vec2 point)
 		return POLY_STATUS_NONCONVEX;
 	}
 
-	m_points[m_num_points] = point;
-	m_num_points++;
+	m_points.push_back(point);
 
 	return POLY_STATUS_OK;
 }
 
 void PolygonDef::deleteLatest()
 {
-	m_num_points--;
-	if (m_num_points < 0)
-		m_num_points = 0;
+	if (m_points.size() > 0)
+		m_points.pop_back();
 }
 
 int PolygonDef::getNumPoints()
 {
-	return m_num_points;
+	return m_points.size();
+}
+
+int PolygonDef::getCapacity()
+{
+	return m_capacity;
 }
 
 void PolygonDef::reset()
 {
-	m_num_points = 0;
+	m_points.clear();
 }
 
 glm::vec2 PolygonDef::getPoint(int index)
 {
-	assert(index >= 0 && index < m_num_points);
+	assert(index >= 0 && index < m_points.size());
 
 	return m_points[index];
 }
 
 void PolygonDef::edit(int index, glm::vec2 point)
 {
-	assert(index >= 0 && index < m_num_points);
+	assert(index >= 0 && index < m_points.size());
 
 	m_points[index] = point;
 }
@@ -125,10 +129,10 @@ bool PolygonDef::lineSide(glm::vec2& p0, glm::vec2& p1, glm::vec2& point)
 
 bool PolygonDef::isPointInside(glm::vec2 point)
 {
-	for (int i=0; i < m_num_points; i++)
+	for (int i=0; i < m_points.size(); i++)
 	{
 		glm::vec2 p0, p1;
-		if (i == (m_num_points - 1))
+		if (i == (m_points.size() - 1))
 		{
 			p0 = m_points[i];
 			p1 = m_points[0];
@@ -153,8 +157,8 @@ bool PolygonDef::isPointInside(glm::vec2 point)
 
 bool PolygonDef::isPointOnEdge(glm::vec2 point, int v1, int v2, float threshold)
 {
-	assert(v1 >= 0 && v1 < m_num_points);
-	assert(v2 >= 0 && v2 < m_num_points);
+	assert(v1 >= 0 && v1 < m_points.size());
+	assert(v2 >= 0 && v2 < m_points.size());
 
 	glm::vec2 np[4];
 
@@ -188,7 +192,7 @@ void PolygonDef::calculateBounds(float*  minx, float* maxx, float* miny, float* 
 	*miny = m_points[0].y;
 	*maxy = *miny;
 
-	for (int i=1; i < m_num_points; i++)
+	for (int i=1; i < m_points.size(); i++)
 	{
 		glm::vec2 p = m_points[i];
 		if (p.x < *minx)

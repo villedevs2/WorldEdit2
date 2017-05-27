@@ -6,7 +6,7 @@ TexEditWidget::TexEditWidget(QWidget* parent, Level* level) : QWidget(parent)
 	m_texture = NULL;
 	m_selected_object = -1;
 
-	m_polydef = new PolygonDef();
+	m_polydef = new PolygonDef(8);
 	m_polydef->reset();
 
 	setMode(MODE_MOVE);

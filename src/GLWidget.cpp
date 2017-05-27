@@ -28,7 +28,7 @@ GLWidget::GLWidget(QWidget *parent, Level* level)
 
 	m_grid_vb = new float[16384];
 
-	m_polydef = new PolygonDef();
+	m_polydef = new PolygonDef(8);
 
 	setFocusPolicy(Qt::StrongFocus);
 
@@ -1529,7 +1529,7 @@ void GLWidget::renderDrawPolyMode(QPainter& painter)
 	}
 
 	// draw line to mouse pointer if not at max
-	if (num_points > 0 && num_points < PolygonDef::CAPACITY_MAX)
+	if (num_points > 0 && num_points < m_polydef->getCapacity())
 	{
 		glm::vec2 p = toScreenCoords(m_polydef->getPoint(num_points-1));
 		glm::vec2 endp = mouse_lp;
@@ -2119,6 +2119,8 @@ void GLWidget::paintGL()
 	QPainter painter;
 	painter.begin(this);
 
+	painter.beginNativePainting();
+
 	// opengl scene rendering
 	// --------------------------------------------------------------------------
 //	glDisable(GL_CULL_FACE);
@@ -2260,10 +2262,12 @@ void GLWidget::paintGL()
 
 	glDisable(GL_DEPTH_TEST);
 	glDisable(GL_ALPHA_TEST);
-	
+
+	painter.endNativePainting();
 
 	// 2d painter stuff
 	// ---------------------------------------------------------------------------
+	
 	QPoint mouse_p = this->mapFromGlobal(QCursor::pos());
 
 
@@ -2410,6 +2414,11 @@ void GLWidget::resizeGL(int width, int height)
 	m_viewport_aspect = m_viewport_width / m_viewport_height;
 
 	update();
+}
+
+void GLWidget::paintEvent(QPaintEvent *e)
+{
+	paintGL();
 }
 
 void GLWidget::enableGrid(bool enable)

@@ -9,7 +9,7 @@ uniform mat2			m_rot_matrix;
 
 void main()
 {
-	vec2 ap = a_position * vec2(v_scale.x, v_scale.y);
+	vec2 ap = vec2(a_position.x, a_position.y) * vec2(v_scale.x, v_scale.y);
 	ap *= m_rot_matrix;
 	ap += v_location;
 	vec2 pos = ap * m_vp_matrix;

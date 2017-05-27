@@ -7,7 +7,7 @@ ObjectDesignerWidget::ObjectDesignerWidget(QWidget* parent, ObjectPrefabs* prefa
 
 	setFocusPolicy(Qt::ClickFocus);
 
-	m_polydef = new PolygonDef();
+	m_polydef = new PolygonDef(8);
 	m_polydef->reset();
 
 	m_zoom = 1.0f;
@@ -707,7 +707,7 @@ void ObjectDesignerWidget::renderDrawPolyMode(QPainter& painter)
 	}
 
 	// draw line to mouse pointer if not at max
-	if (num_points > 0 && num_points < PolygonDef::CAPACITY_MAX && !m_poly_closed)
+	if (num_points > 0 && num_points < m_polydef->getCapacity() && !m_poly_closed)
 	{
 		glm::vec2 p = toScreenCoords(m_polydef->getPoint(num_points-1));
 		glm::vec2 endp = mouse_lp;
