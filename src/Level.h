@@ -7,7 +7,12 @@
 
 #include "Tilemap.h"
 
-using namespace std;
+class TiledObject
+{
+public:
+
+private:
+};
 
 class Level
 {
@@ -129,7 +134,7 @@ public:
 	void resetModify();
 	bool isVBOUpdated();
 	void resetVBOUpdate();
-	void setTriggerList(vector<std::string>& list);
+	void setTriggerList(std::vector<std::string>& list);
 	const std::string& getTriggerName(int index);
 	int getNumTriggers();
 	int getNumPrefabs();
@@ -157,7 +162,7 @@ private:
 	int tesselateObject(int object);
 	void tesselateAll();
 
-	vector<Object*> m_objects;
+	std::vector<Object*> m_objects;
 	VBO* m_vbo[NUM_VBOS];
 	int m_num_verts[NUM_VBOS];
 	int m_cumulative_object_id;
@@ -167,8 +172,8 @@ private:
 
 	bool m_vbo_updated;
 
-	vector<std::string> m_trigger_list;
-	vector<Level::Prefab> m_prefabs;
+	std::vector<std::string> m_trigger_list;
+	std::vector<Level::Prefab> m_prefabs;
 
 	Tilemap* m_tilemap;
 };

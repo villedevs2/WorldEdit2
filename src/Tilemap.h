@@ -5,8 +5,6 @@
 #include <string>
 #include <vector>
 
-using namespace std;
-
 class Tilemap
 {
 public:
@@ -68,5 +66,5 @@ private:
 	Config m_config;
 
 	int m_cumulative_tile_id;
-	vector<Tile> m_tiles;
+	std::vector<Tile> m_tiles;
 };

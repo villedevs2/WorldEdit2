@@ -617,7 +617,7 @@ void GLWidget::mouseReleaseEvent(QMouseEvent* event)
 								maxy = p.y;
 						}
 
-						float scale = max(maxx - minx, maxy - miny);
+						float scale = std::max(maxx - minx, maxy - miny);
 						if (scale == 0.0f ) scale = 1.0f;
 
 						// process uvs
@@ -775,7 +775,7 @@ void GLWidget::mouseReleaseEvent(QMouseEvent* event)
 
 					deselectObject();
 
-					vector<int> selection;
+					std::vector<int> selection;
 					selection.clear();
 
 					int num_objs = m_level->numObjects();
@@ -1100,7 +1100,7 @@ void GLWidget::keyReleaseEvent(QKeyEvent* event)
 							maxy = p.y;
 					}
 
-					float scale = max(maxx - minx, maxy - miny);
+					float scale = std::max(maxx - minx, maxy - miny);
 					if (scale == 0.0f ) scale = 1.0f;
 
 					// process vertices
@@ -1222,7 +1222,7 @@ void GLWidget::keyReleaseEvent(QKeyEvent* event)
 									maxy = p.y;
 							}
 
-							float scale = max(maxx - minx, maxy - miny);
+							float scale = std::max(maxx - minx, maxy - miny);
 							if (scale == 0.0f ) scale = 1.0f;
 
 							// process vertices

@@ -248,8 +248,8 @@ void Level::Object::copy(const Level::Object& source)
 	}
 
 	// set name
-	string::size_type pos = source.m_name.rfind("- Copy");
-	if (pos != string::npos)
+	std::string::size_type pos = source.m_name.rfind("- Copy");
+	if (pos != std::string::npos)
 	{
 		std::string numstr = source.m_name.substr(pos+6);
 		int num = 1;
@@ -645,7 +645,7 @@ void Level::resetVBOUpdate()
 	m_vbo_updated = false;
 }
 
-void Level::setTriggerList(vector<std::string>& list)
+void Level::setTriggerList(std::vector<std::string>& list)
 {
 	int num = list.size();
 

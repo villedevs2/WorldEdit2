@@ -130,7 +130,7 @@ glm::vec2& TexEditWidget::toScreenCoords(glm::vec2& point)
 
 	float ww = (float)width();
 	float hh = (float)height();
-	float side = min(ww, hh);
+	float side = std::min(ww, hh);
 
 	float mult = (float)(side);
 
@@ -161,7 +161,7 @@ glm::vec2& TexEditWidget::toUVCoords(glm::vec2& point)
 
 	float ww = (float)width();
 	float hh = (float)height();
-	float side = min(ww, hh);
+	float side = std::min(ww, hh);
 
 	float x = point.x * scale;
 	float y = point.y * scale;
@@ -410,7 +410,7 @@ void TexEditWidget::paintEvent(QPaintEvent* event)
 	float w = (float)(width());
 	float h = (float)(height());
 
-	m_area_texside = min(w, h) - 10;
+	m_area_texside = std::min(w, h) - 10;
 
 	m_area_xleft = 0.0f - ((w - m_area_texside) / 2.0f);
 	m_area_xright = w - ((w - m_area_texside) / 2.0f);
