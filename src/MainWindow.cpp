@@ -1662,7 +1662,7 @@ bool MainWindow::readLevelFile(QString& filename)
 		glm::vec2 uv;
 	};
 
-	vector<Point> points;
+	std::vector<Point> points;
 	Point current_point;
 	QString object_name;
 	int object_id;

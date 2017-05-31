@@ -16,8 +16,6 @@
 #include "PolygonDef.h"
 #include "ObjectPrefabs.h"
 
-using namespace std;
-
 class ObjectDesignerWidget : public QWidget
 {
 	Q_OBJECT

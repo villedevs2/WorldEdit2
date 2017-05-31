@@ -87,7 +87,7 @@ glm::vec2 ObjectDesignerWidget::toScreenCoords(glm::vec2& point)
 
 	float ww = (float)width();
 	float hh = (float)height();
-	float side = min(ww, hh);
+	float side = std::min(ww, hh);
 
 	float mult = (float)(side);
 
@@ -104,7 +104,7 @@ glm::vec2 ObjectDesignerWidget::toUVCoords(glm::vec2& point)
 
 	float ww = (float)width();
 	float hh = (float)height();
-	float side = min(ww, hh);
+	float side = std::min(ww, hh);
 
 	float x = point.x * scale;
 	float y = point.y * scale;
@@ -212,7 +212,7 @@ void ObjectDesignerWidget::insertObject(QString& name)
 				maxy = points[i].y;
 		}
 
-		float side = max((maxx-minx), (maxy-miny));
+		float side = std::max((maxx-minx), (maxy-miny));
 
 		// normalize
 		for (int i=0; i < num_points; i++)
@@ -870,7 +870,7 @@ void ObjectDesignerWidget::paintEvent(QPaintEvent* event)
 	float w = (float)(width());
 	float h = (float)(height());
 
-	float area_texside = min(w, h) - 10;
+	float area_texside = std::min(w, h) - 10;
 
 	float area_xleft = 0.0f - ((w - area_texside) / 2.0f);
 	float area_xright = w - ((w - area_texside) / 2.0f);
