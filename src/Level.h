@@ -9,9 +9,19 @@
 
 class TiledObject
 {
-public:
+	friend class Level;
 
+public:
+	TiledObject(int id, glm::vec2 position, int width, int height, float tile_size);
+	~TiledObject();
 private:
+	glm::vec2 m_position;
+	int m_width;
+	int m_height;
+	float m_tile_size;
+	int m_id;
+	int m_vbo_index;
+	int m_z;
 };
 
 class Level
@@ -35,6 +45,7 @@ public:
 		VBO_SLIDER = 2,
 		VBO_DESTRUCTIBLE = 3,
 		VBO_MOVER = 4,
+		VBO_TILEDOBJECT = 5,
 		NUM_VBOS,
 	};
 
@@ -158,15 +169,25 @@ public:
 	const Tilemap::Tile* getTileById(int id);
 	int getTileIndexById(int id);
 
+	int insertTiledObject(const glm::vec2& position, int width, int height, float tile_size);
+	void removeTiledObject(int object);
+	void removeTiledObjectById(int id);
+	void removeTiledObjects();
+	int numTiledObjects();
+
 private:
 	int tesselateObject(int object);
-	void tesselateAll();
+	void tesselateAllObjects();
+	void setModified();
+	int tesselateTiledObject(int object);
+	void tesselateAllTiledObjects();
 
 	std::vector<Object*> m_objects;
 	VBO* m_vbo[NUM_VBOS];
 	int m_num_verts[NUM_VBOS];
 	int m_cumulative_object_id;
 	int m_cumulative_prefab_id;
+	int m_cumulative_tiledobject_id;
 
 	bool m_modified;
 
@@ -176,4 +197,6 @@ private:
 	std::vector<Level::Prefab> m_prefabs;
 
 	Tilemap* m_tilemap;
+
+	std::vector<TiledObject*> m_tiledobjects;
 };

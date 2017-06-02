@@ -222,4 +222,5 @@ private:
 	int m_tiledprefab_w;
 	int m_tiledprefab_h;
 	float m_tiledprefab_size;
+	glm::vec2 m_tiledprefab_origin;
 };

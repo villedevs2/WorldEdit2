@@ -1,5 +1,25 @@
 #include "Level.h"
 
+
+TiledObject::TiledObject(int id, glm::vec2 position, int width, int height, float tile_size)
+{
+	m_id = id;
+
+	m_position = position;
+	m_width = width;
+	m_height = height;
+	m_tile_size = tile_size;
+
+	m_z = 0;
+}
+
+TiledObject::~TiledObject()
+{
+
+}
+
+
+
 // init static member
 Level* Level::Object::m_parent = NULL;
 
@@ -143,13 +163,13 @@ void Level::Object::setType(Level::ObjectType type)
 		m_type = type;
 
 		// flag level modified
-		m_parent->m_modified = true;
+		m_parent->setModified();
 
 		//TODO: full tesselate
 
 		//int index = m_parent->getIndexById(this->m_id);
 		//m_parent->tesselateObject(index);
-		m_parent->tesselateAll();
+		m_parent->tesselateAllObjects();
 	}
 }
 
@@ -198,7 +218,7 @@ void Level::Object::setParam(int index, Level::Object::Param data)
 		m_params[index] = data;
 
 		// flag level modified
-		m_parent->m_modified = true;
+		m_parent->setModified();
 
 		// flag for screen update
 		m_parent->m_vbo_updated = true;
@@ -224,7 +244,7 @@ void Level::Object::setZ(int z)
 		m_z = z;
 
 		// flag level modified
-		m_parent->m_modified = true;
+		m_parent->setModified();
 
 		// flag for screen update
 		m_parent->m_vbo_updated = true;
@@ -336,7 +356,7 @@ int Level::insertObject(glm::vec2* points, glm::vec2* uvs, int num_points, Objec
 		m_num_verts[vbo_index] += size;
 	}
 
-	m_modified = true;
+	setModified();
 
 	return id;
 }
@@ -350,9 +370,9 @@ void Level::removeObject(int object)
 
 	m_objects.erase(m_objects.begin() + object);
 
-	m_modified = true;
+	setModified();
 
-	tesselateAll();
+	tesselateAllObjects();
 }
 
 void Level::removeObjectById(int id)
@@ -366,7 +386,8 @@ void Level::removeObjectById(int id)
 			m_objects.erase(m_objects.begin() + i);
 			delete obj;
 
-			m_modified = true;
+			setModified();
+			tesselateAllObjects();
 			return;
 		}
 	}
@@ -387,7 +408,7 @@ void Level::editObjectGeo(int object, glm::vec2* points, glm::vec2* uvs)
 	obj->calculateBoundingBox();
 	tesselateObject(object);
 
-	m_modified = true;
+	setModified();
 }
 
 void Level::editObjectGeo(int object, glm::vec2* points)
@@ -404,7 +425,7 @@ void Level::editObjectGeo(int object, glm::vec2* points)
 	obj->calculateBoundingBox();
 	tesselateObject(object);
 
-	m_modified = true;
+	setModified();
 }
 
 void Level::editObjectUVs(int object, glm::vec2* uvs)
@@ -420,7 +441,7 @@ void Level::editObjectUVs(int object, glm::vec2* uvs)
 
 	tesselateObject(object);
 	
-	m_modified = true;
+	setModified();
 }
 
 int Level::tesselateObject(int object)
@@ -507,7 +528,7 @@ int Level::tesselateObject(int object)
 	return index - obj->m_vbo_index;
 }
 
-void Level::tesselateAll()
+void Level::tesselateAllObjects()
 {
 	for (int i=0; i < NUM_VBOS; i++)
 	{
@@ -551,9 +572,9 @@ void Level::removeObjects()
 
 	m_objects.clear();
 
-	tesselateAll();
+	tesselateAllObjects();
 
-	m_modified = true;
+	setModified();
 }
 
 int Level::numObjects()
@@ -610,7 +631,7 @@ void Level::reset()
 
 	m_tilemap->reset();
 
-	m_modified = true;
+	setModified();
 }
 
 float* Level::getVBO(int index)
@@ -633,6 +654,11 @@ bool Level::isModified()
 void Level::resetModify()
 {
 	m_modified = false;
+}
+
+void Level::setModified()
+{
+	m_modified = true;
 }
 
 bool Level::isVBOUpdated()
@@ -731,7 +757,7 @@ int Level::insertPrefab(std::string name, glm::vec4* points, int num_points)
 
 	m_prefabs.push_back(prefab);
 
-	m_modified = true;
+	setModified();
 	return prefab.id;
 }
 
@@ -744,7 +770,7 @@ void Level::removePrefab(int id)
 		if (prefab->id == id)
 		{
 			m_prefabs.erase(m_prefabs.begin() + i);
-			m_modified = true;
+			setModified();
 			return;
 		}
 	}
@@ -754,7 +780,7 @@ void Level::removePrefabs()
 {
 	m_prefabs.clear();
 
-	m_modified = true;
+	setModified();
 }
 
 
@@ -762,7 +788,7 @@ void Level::removePrefabs()
 void Level::resizeTilemap(int xstart, int xend, int ystart, int yend, float tile_size)
 {
 	m_tilemap->resize(xstart, ystart, xend, yend, tile_size);
-	m_modified = true;
+	setModified();
 }
 
 int Level::readTilemap(int x, int y)
@@ -773,7 +799,7 @@ int Level::readTilemap(int x, int y)
 void Level::editTilemap(int x, int y, int tile)
 {
 	m_tilemap->edit(x, y, tile);
-	m_modified = true;
+	setModified();
 }
 
 float* Level::getTilemapVBO()
@@ -794,7 +820,7 @@ const Tilemap::Config& Level::getTilemapConfig()
 
 int Level::insertTile(std::string name, glm::vec2* points)
 {
-	m_modified = true;
+	setModified();
 	return m_tilemap->insertTile(name, points);
 }
 
@@ -802,13 +828,13 @@ void Level::removeTile(int id)
 {
 	bool removed = m_tilemap->removeTile(id);
 	if (removed)
-		m_modified = true;
+		setModified();
 }
 
 void Level::removeTiles()
 {
 	m_tilemap->removeTiles();
-	m_modified = true;
+	setModified();
 }
 
 int Level::getNumTiles()
@@ -829,4 +855,130 @@ const Tilemap::Tile* Level::getTileById(int id)
 int Level::getTileIndexById(int id)
 {
 	return m_tilemap->getTileIndexById(id);
+}
+
+
+int Level::insertTiledObject(const glm::vec2& position, int width, int height, float tile_size)
+{
+	int id = m_cumulative_tiledobject_id;
+	m_cumulative_tiledobject_id++;
+
+	TiledObject* obj = new TiledObject(id, position, width, height, tile_size);
+	m_tiledobjects.push_back(obj);
+
+	m_tiledobjects.back()->m_vbo_index = m_num_verts[VBO_TILEDOBJECT];
+	int size = tesselateTiledObject(m_tiledobjects.size() - 1);
+	m_num_verts[VBO_TILEDOBJECT] += size;
+
+	setModified();
+
+	return id;
+}
+
+void Level::removeTiledObject(int object)
+{
+	assert(object >= 0 && object < (int)m_tiledobjects.size());
+
+	TiledObject* obj = m_tiledobjects.at(object);
+	delete obj;
+
+	m_tiledobjects.erase(m_tiledobjects.begin() + object);
+
+	setModified();
+
+	tesselateAllTiledObjects();
+}
+
+void Level::removeTiledObjectById(int id)
+{
+	int num_objs = m_tiledobjects.size();
+	for (int i = 0; i < num_objs; i++)
+	{
+		TiledObject* obj = m_tiledobjects.at(i);
+		if (obj->m_id == id)
+		{
+			m_tiledobjects.erase(m_tiledobjects.begin() + i);
+			delete obj;
+
+			setModified();
+			tesselateAllTiledObjects();
+			return;
+		}
+	}
+}
+
+int Level::tesselateTiledObject(int object)
+{
+	TiledObject* obj = m_tiledobjects[object];
+	int index = obj->m_vbo_index;
+
+	float z = (float)(obj->m_z) + 100.0f;
+
+	for (int j = 0; j < obj->m_height; j++)
+	{
+		for (int i = 0; i < obj->m_width; i++)
+		{
+			float sx = obj->m_position.x + (i * obj->m_tile_size);
+			float ex = sx + obj->m_tile_size;
+			float sy = obj->m_position.y + (j * obj->m_tile_size);
+			float ey = sy + obj->m_tile_size;
+
+			glm::vec3 p0 = glm::vec3(sx, sy, z);
+			glm::vec3 p1 = glm::vec3(sx, ey, z);
+			glm::vec3 p2 = glm::vec3(ex, ey, z);
+			glm::vec3 p3 = glm::vec3(ex, sy, z);
+
+			glm::vec2 uv0 = glm::vec2(0.0f, 0.0f);
+			glm::vec2 uv1 = glm::vec2(0.0f, 1.0f);
+			glm::vec2 uv2 = glm::vec2(1.0f, 1.0f);
+			glm::vec2 uv3 = glm::vec2(1.0f, 0.0f);
+
+			m_vbo[VBO_TILEDOBJECT][index + 0].position = p0;	m_vbo[VBO_TILEDOBJECT][index + 0].uv = uv0;
+			m_vbo[VBO_TILEDOBJECT][index + 1].position = p1;	m_vbo[VBO_TILEDOBJECT][index + 1].uv = uv1;
+			m_vbo[VBO_TILEDOBJECT][index + 2].position = p2;	m_vbo[VBO_TILEDOBJECT][index + 2].uv = uv2;
+			m_vbo[VBO_TILEDOBJECT][index + 3].position = p0;	m_vbo[VBO_TILEDOBJECT][index + 3].uv = uv0;
+			m_vbo[VBO_TILEDOBJECT][index + 4].position = p2;	m_vbo[VBO_TILEDOBJECT][index + 4].uv = uv2;
+			m_vbo[VBO_TILEDOBJECT][index + 5].position = p3;	m_vbo[VBO_TILEDOBJECT][index + 5].uv = uv3;
+
+			index += 6;
+		}
+	}
+
+	m_vbo_updated = true;
+
+	return index - obj->m_vbo_index;
+}
+
+void Level::tesselateAllTiledObjects()
+{
+	int num_objs = m_tiledobjects.size();
+
+	for (int i = 0; i < num_objs; i++)
+	{
+		TiledObject* obj = m_tiledobjects[i];
+
+		obj->m_vbo_index = m_num_verts[VBO_TILEDOBJECT];
+		m_num_verts[VBO_TILEDOBJECT] += tesselateTiledObject(i);
+	}
+}
+
+void Level::removeTiledObjects()
+{
+	int num_objs = m_tiledobjects.size();
+
+	for (int i = 0; i < num_objs; i++)
+	{
+		delete m_tiledobjects[i];
+	}
+
+	m_tiledobjects.clear();
+
+	tesselateAllTiledObjects();
+
+	setModified();
+}
+
+int Level::numTiledObjects()
+{
+	return (int)m_tiledobjects.size();
 }

@@ -73,6 +73,7 @@ GLWidget::GLWidget(QWidget *parent, Level* level)
 	m_tiledprefab_w = 1;
 	m_tiledprefab_h = 1;
 	m_tiledprefab_size = 1.0f;
+	m_tiledprefab_origin = glm::vec2(0, 0);
 
 	reset();
 }
@@ -370,11 +371,15 @@ void GLWidget::setTiledPrefabSize(int width, int height)
 {
 	m_tiledprefab_w = width;
 	m_tiledprefab_h = height;
+
+	update();
 }
 
 void GLWidget::setTiledPrefabTileSize(double size)
 {
 	m_tiledprefab_size = size;
+	
+	update();
 }
 
 // ----------------------------------------------------------------------------
@@ -950,6 +955,16 @@ void GLWidget::mousePressEvent(QMouseEvent* event)
 			m_prefab_point = point;
 			break;
 		}
+
+		case MODE_TILEDPREFAB:
+		{
+			glm::vec2 mouse_lp = toLevelCoords(glm::vec2(mouse_x, mouse_y));
+			if (m_snap_grid)
+				mouse_lp = snapToGrid(mouse_lp);
+
+			m_tiledprefab_origin = mouse_lp;
+			break;
+		}
 		
 		case MODE_TILEMAP:
 		{
@@ -999,6 +1014,16 @@ void GLWidget::mouseMoveEvent(QMouseEvent* event)
 		case MODE_PREFAB:
 		{
 			m_prefab_point = point;
+			break;
+		}
+
+		case MODE_TILEDPREFAB:
+		{
+			glm::vec2 mouse_lp = toLevelCoords(glm::vec2(mouse_x, mouse_y));
+			if (m_snap_grid)
+				mouse_lp = snapToGrid(mouse_lp);
+
+			m_tiledprefab_origin = mouse_lp;
 			break;
 		}
 
@@ -1311,6 +1336,15 @@ void GLWidget::keyReleaseEvent(QKeyEvent* event)
 						obj->setZ(m_prefab_depth);
 					}
 				}
+			}
+			break;
+		}
+
+		case MODE_TILEDPREFAB:
+		{
+			if (key == Qt::Key_Space)
+			{
+				int id = m_level->insertTiledObject(m_tiledprefab_origin, m_tiledprefab_w, m_tiledprefab_h, m_tiledprefab_size);
 			}
 			break;
 		}
@@ -1799,17 +1833,16 @@ void GLWidget::renderTiledprefabMode(QPainter& painter)
 	}
 	*/
 
-	glm::vec2 p = toScreenCoords(center_point);
+	float ex = m_tiledprefab_origin.x + (m_tiledprefab_w * m_tiledprefab_size);
+	float ey = m_tiledprefab_origin.y + (m_tiledprefab_h * m_tiledprefab_size);
 
-	float ex = center_point.x + (m_tiledprefab_w * m_tiledprefab_size);
-	float ey = center_point.y + (m_tiledprefab_h * m_tiledprefab_size);
-
+	glm::vec2 sp = toScreenCoords(m_tiledprefab_origin);
 	glm::vec2 ep = toScreenCoords(glm::vec2(ex, ey));
 
 	painter.setPen(QColor(224,224,224));
 	painter.setBrush(QBrush(QColor(224,224,224,128)));
 	//painter.drawConvexPolygon(ppoints, prefab->num_points);
-	painter.drawRect(p.x, p.y, ep.x-p.x, ep.y-p.y);
+	painter.drawRect(sp.x, sp.y, ep.x-sp.x, ep.y-sp.y);
 
 	/*
 	glm::vec2 sx = toScreenCoords(mouse_lp);
@@ -2242,6 +2275,7 @@ void GLWidget::paintGL()
 			case Level::VBO_SLIDER:			render = m_display_filter & (1 << (Level::OBJECT_TYPE_SLIDER-1)); break;
 			case Level::VBO_DESTRUCTIBLE:	render = m_display_filter & (1 << (Level::OBJECT_TYPE_DESTRUCTIBLE-1)); break;
 			case Level::VBO_MOVER:			render = m_display_filter & (1 << (Level::OBJECT_TYPE_MOVER-1)); break;
+			case Level::VBO_TILEDOBJECT:	render = true; break;
 		}
 
 		if (render && num_static_verts > 0)
