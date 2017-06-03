@@ -108,8 +108,6 @@ private:
 
 	QActionGroup* m_opgroup;
 	QAction* m_select_action;
-	QAction* m_polyminus_action;
-	QAction* m_polyplus_action;
 	QAction* m_move_action;
 	QAction* m_rotate_action;
 	QAction* m_scale_action;
@@ -205,8 +203,6 @@ private slots:
 	void savePrefabs();
 
 	void selectionMode();
-	void polyPlusMode();
-	void polyMinusMode();
 	void moveMode();
 	void rotateMode();
 	void scaleMode();

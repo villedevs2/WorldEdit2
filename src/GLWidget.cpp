@@ -1344,7 +1344,9 @@ void GLWidget::keyReleaseEvent(QKeyEvent* event)
 		{
 			if (key == Qt::Key_Space)
 			{
-				int id = m_level->insertTiledObject(m_tiledprefab_origin, m_tiledprefab_w, m_tiledprefab_h, m_tiledprefab_size);
+				TiledObject::Definition tiledef = { 2.0f, 2.0f, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+
+				int id = m_level->insertTiledObject(m_tiledprefab_origin, m_tiledprefab_w, m_tiledprefab_h, m_tiledprefab_size, tiledef);
 			}
 			break;
 		}

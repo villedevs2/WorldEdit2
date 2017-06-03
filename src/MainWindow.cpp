@@ -565,18 +565,6 @@ void MainWindow::tilemapMode()
 	m_tilemap_action->setChecked(true);
 }
 
-void MainWindow::polyPlusMode()
-{
-	emit m_glwidget->setMode(GLWidget::MODE_POLYPLUS);
-	m_polyplus_action->setChecked(true);
-}
-
-void MainWindow::polyMinusMode()
-{
-	emit m_glwidget->setMode(GLWidget::MODE_POLYMINUS);
-	m_polyminus_action->setChecked(true);
-}
-
 
 void MainWindow::toggleTexEdit()
 {
@@ -1034,14 +1022,6 @@ void MainWindow::createActions()
 	m_select_action->setShortcut(Qt::Key_S);
 	connect(m_select_action, SIGNAL(triggered()), this, SLOT(selectionMode()));
 
-	m_polyminus_action = new QAction(QIcon("polyminus.png"), tr("Carve the collision layer"), this);
-	m_polyminus_action->setCheckable(true);
-	connect(m_polyminus_action, SIGNAL(triggered()), this, SLOT(polyMinusMode()));
-
-	m_polyplus_action = new QAction(QIcon("polyplus.png"), tr("Insert to collision layer"), this);
-	m_polyplus_action->setCheckable(true);
-	connect(m_polyplus_action, SIGNAL(triggered()), this, SLOT(polyPlusMode()));
-
 	m_move_action = new QAction(QIcon("move.png"), tr("Move object"), this);
 	m_move_action->setCheckable(true);
 	m_move_action->setShortcut(Qt::Key_M);
@@ -1079,8 +1059,6 @@ void MainWindow::createActions()
 	connect(m_tilemap_action, SIGNAL(triggered()), this, SLOT(tilemapMode()));
 
 	m_opgroup->addAction(m_select_action);
-	m_opgroup->addAction(m_polyminus_action);
-	m_opgroup->addAction(m_polyplus_action);
 	m_opgroup->addAction(m_move_action);
 	m_opgroup->addAction(m_rotate_action);
 	m_opgroup->addAction(m_scale_action);
@@ -1277,8 +1255,6 @@ void MainWindow::createToolbars()
 
 	m_op_toolbar = addToolBar("Operation");
 	m_op_toolbar->addAction(m_select_action);
-	m_op_toolbar->addAction(m_polyplus_action);
-	m_op_toolbar->addAction(m_polyminus_action);
 	m_op_toolbar->addAction(m_move_action);
 	m_op_toolbar->addAction(m_rotate_action);
 	m_op_toolbar->addAction(m_scale_action);

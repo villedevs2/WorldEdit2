@@ -12,7 +12,33 @@ class TiledObject
 	friend class Level;
 
 public:
-	TiledObject(int id, glm::vec2 position, int width, int height, float tile_size);
+	enum TileType {
+		TILE_CORNER_TL,
+		TILE_CORNER_TR,
+		TILE_CORNER_BL,
+		TILE_CORNER_BR,
+		TILE_EDGE_TOP,
+		TILE_EDGE_BOTTOM,
+		TILE_EDGE_LEFT,
+		TILE_EDGE_RIGHT,
+		TILE_MIDDLE
+	};
+
+	struct Definition {
+		float width;
+		float height;
+		int corner_tl;
+		int corner_tr;
+		int corner_bl;
+		int corner_br;
+		int edge_top;
+		int edge_bottom;
+		int edge_left;
+		int edge_right;
+		int middle;
+	};
+
+	TiledObject(int id, glm::vec2 position, int width, int height, float tile_size, const TiledObject::Definition& tiledef);
 	~TiledObject();
 private:
 	glm::vec2 m_position;
@@ -22,6 +48,8 @@ private:
 	int m_id;
 	int m_vbo_index;
 	int m_z;
+
+	TiledObject::Definition m_tiledef;
 };
 
 class Level
@@ -34,7 +62,7 @@ public:
 		OBJECT_TYPE_GEOVIS			= 2,
 		OBJECT_TYPE_TRIGGER			= 3,
 		OBJECT_TYPE_SLIDER			= 4,
-		OBJECT_TYPE_DESTRUCTIBLE		= 5,
+		OBJECT_TYPE_DESTRUCTIBLE	= 5,
 		OBJECT_TYPE_MOVER			= 6,
 	};
 
@@ -169,7 +197,7 @@ public:
 	const Tilemap::Tile* getTileById(int id);
 	int getTileIndexById(int id);
 
-	int insertTiledObject(const glm::vec2& position, int width, int height, float tile_size);
+	int insertTiledObject(const glm::vec2& position, int width, int height, float tile_size, const TiledObject::Definition& tiledef);
 	void removeTiledObject(int object);
 	void removeTiledObjectById(int id);
 	void removeTiledObjects();

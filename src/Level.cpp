@@ -1,7 +1,7 @@
 #include "Level.h"
 
 
-TiledObject::TiledObject(int id, glm::vec2 position, int width, int height, float tile_size)
+TiledObject::TiledObject(int id, glm::vec2 position, int width, int height, float tile_size, const TiledObject::Definition& tiledef)
 {
 	m_id = id;
 
@@ -11,6 +11,37 @@ TiledObject::TiledObject(int id, glm::vec2 position, int width, int height, floa
 	m_tile_size = tile_size;
 
 	m_z = 0;
+
+	m_tiledef.width = tiledef.width;
+	m_tiledef.height = tiledef.height;
+
+	m_tiledef.middle = tiledef.middle;
+	m_tiledef.edge_left = tiledef.edge_left;
+	m_tiledef.edge_right = tiledef.edge_right;
+	m_tiledef.edge_top = tiledef.edge_top;
+	m_tiledef.edge_bottom = tiledef.edge_bottom;
+	m_tiledef.corner_tl = tiledef.corner_tl;
+	m_tiledef.corner_tr = tiledef.corner_tr;
+	m_tiledef.corner_bl = tiledef.corner_bl;
+	m_tiledef.corner_br = tiledef.corner_br;
+
+	if (m_tiledef.edge_top < 0)
+		m_tiledef.edge_top = m_tiledef.middle;
+	if (m_tiledef.edge_bottom < 0)
+		m_tiledef.edge_bottom = m_tiledef.middle;
+	if (m_tiledef.edge_left < 0)
+		m_tiledef.edge_left = m_tiledef.middle;
+	if (m_tiledef.edge_right < 0)
+		m_tiledef.edge_right = m_tiledef.middle;
+	
+	if (m_tiledef.corner_tl < 0)
+		m_tiledef.corner_tl = m_tiledef.edge_top;
+	if (m_tiledef.corner_tr < 0)
+		m_tiledef.corner_tr = m_tiledef.edge_top;
+	if (m_tiledef.corner_bl < 0)
+		m_tiledef.corner_bl = m_tiledef.edge_bottom;
+	if (m_tiledef.corner_br < 0)
+		m_tiledef.corner_br = m_tiledef.edge_bottom;
 }
 
 TiledObject::~TiledObject()
@@ -858,12 +889,12 @@ int Level::getTileIndexById(int id)
 }
 
 
-int Level::insertTiledObject(const glm::vec2& position, int width, int height, float tile_size)
+int Level::insertTiledObject(const glm::vec2& position, int width, int height, float tile_size, const TiledObject::Definition& tiledef)
 {
 	int id = m_cumulative_tiledobject_id;
 	m_cumulative_tiledobject_id++;
 
-	TiledObject* obj = new TiledObject(id, position, width, height, tile_size);
+	TiledObject* obj = new TiledObject(id, position, width, height, tile_size, tiledef);
 	m_tiledobjects.push_back(obj);
 
 	m_tiledobjects.back()->m_vbo_index = m_num_verts[VBO_TILEDOBJECT];
@@ -918,20 +949,73 @@ int Level::tesselateTiledObject(int object)
 	{
 		for (int i = 0; i < obj->m_width; i++)
 		{
-			float sx = obj->m_position.x + (i * obj->m_tile_size);
-			float ex = sx + obj->m_tile_size;
-			float sy = obj->m_position.y + (j * obj->m_tile_size);
-			float ey = sy + obj->m_tile_size;
+			TiledObject::TileType tiletype;
+
+			if (i == 0 && j == 0)
+				tiletype = TiledObject::TILE_CORNER_TL;
+			else if (i == obj->m_width - 1 && j == 0)
+				tiletype = TiledObject::TILE_CORNER_TR;
+			else if (i == 0 && j == obj->m_height - 1)
+				tiletype = TiledObject::TILE_CORNER_BL;
+			else if (i == obj->m_width - 1 && j == obj->m_height - 1)
+				tiletype = TiledObject::TILE_CORNER_BR;
+			else if (i == 0)
+				tiletype = TiledObject::TILE_EDGE_LEFT;
+			else if (i == obj->m_width - 1)
+				tiletype = TiledObject::TILE_EDGE_RIGHT;
+			else if (j == 0)
+				tiletype = TiledObject::TILE_EDGE_TOP;
+			else if (j == obj->m_height - 1)
+				tiletype = TiledObject::TILE_EDGE_BOTTOM;
+			else
+				tiletype = TiledObject::TILE_MIDDLE;
+
+			int tile_index = 0;
+
+			switch (tiletype)
+			{
+				case TiledObject::TILE_CORNER_TL:	tile_index = obj->m_tiledef.corner_tl; break;
+				case TiledObject::TILE_CORNER_TR:	tile_index = obj->m_tiledef.corner_tr; break;
+				case TiledObject::TILE_CORNER_BL:	tile_index = obj->m_tiledef.corner_bl; break;
+				case TiledObject::TILE_CORNER_BR:	tile_index = obj->m_tiledef.corner_br; break;
+				case TiledObject::TILE_EDGE_TOP:	tile_index = obj->m_tiledef.edge_top; break;
+				case TiledObject::TILE_EDGE_BOTTOM:	tile_index = obj->m_tiledef.edge_bottom; break;
+				case TiledObject::TILE_EDGE_LEFT:	tile_index = obj->m_tiledef.edge_left; break;
+				case TiledObject::TILE_EDGE_RIGHT:	tile_index = obj->m_tiledef.edge_right; break;
+				default:							tile_index = obj->m_tiledef.middle; break;
+			}
+
+			float w = obj->m_tile_size * obj->m_tiledef.width;
+			float h = obj->m_tile_size * obj->m_tiledef.height;
+
+			float sx = obj->m_position.x + (i * w);
+			float ex = sx + w;
+			float sy = obj->m_position.y + (j * w);
+			float ey = sy + h;
 
 			glm::vec3 p0 = glm::vec3(sx, sy, z);
 			glm::vec3 p1 = glm::vec3(sx, ey, z);
 			glm::vec3 p2 = glm::vec3(ex, ey, z);
 			glm::vec3 p3 = glm::vec3(ex, sy, z);
 
-			glm::vec2 uv0 = glm::vec2(0.0f, 0.0f);
-			glm::vec2 uv1 = glm::vec2(0.0f, 1.0f);
-			glm::vec2 uv2 = glm::vec2(1.0f, 1.0f);
-			glm::vec2 uv3 = glm::vec2(1.0f, 0.0f);
+			glm::vec2 uv0, uv1, uv2, uv3;
+
+			if (m_tilemap->getNumTiles() > 0)
+			{
+				const Tilemap::Tile& tile = m_tilemap->getTile(tile_index);
+
+				uv0 = tile.points[0];
+				uv1 = tile.points[1];
+				uv2 = tile.points[2];
+				uv3 = tile.points[3];
+			}
+			else
+			{
+				uv0 = glm::vec2(0.0f, 0.0f);
+				uv1 = glm::vec2(0.0f, 1.0f);
+				uv2 = glm::vec2(1.0f, 1.0f);
+				uv3 = glm::vec2(1.0f, 0.0f);
+			}
 
 			m_vbo[VBO_TILEDOBJECT][index + 0].position = p0;	m_vbo[VBO_TILEDOBJECT][index + 0].uv = uv0;
 			m_vbo[VBO_TILEDOBJECT][index + 1].position = p1;	m_vbo[VBO_TILEDOBJECT][index + 1].uv = uv1;
