@@ -46,7 +46,7 @@ GLWidget::GLWidget(QWidget *parent, Level* level)
 	m_dragging = false;
 	m_panning = false;
 
-	m_saved_object = new Level::Object(-1, (glm::vec2*)NULL, (glm::vec2*)NULL, 0, Level::OBJECT_TYPE_COLLISION, std::string(""));
+	m_saved_object = new Level::Object(-1, (glm::vec2*)NULL, (glm::vec2*)NULL, 0, Level::OBJECT_TYPE_COLLISION, std::string(""), 0);
 
 	m_grid_size = 0;
 
@@ -267,7 +267,9 @@ void GLWidget::paste()
 			uvs[i] = m_saved_object->getUV(i);
 		}
 
-		int id = m_level->insertObject(points, uvs, num_points, type, name);
+		unsigned int color = m_saved_object->getColor();
+
+		int id = m_level->insertObject(points, uvs, num_points, type, name, color);
 		emit onAddObject(id);
 
 		Level::Object* obj = m_level->getObjectById(id);
@@ -650,7 +652,7 @@ void GLWidget::mouseReleaseEvent(QMouseEvent* event)
 						}
 
 						// generate polygon
-						int id = m_level->insertObject(points, uvs, 4, m_create_type, name);
+						int id = m_level->insertObject(points, uvs, 4, m_create_type, name, m_create_poly_color);
 						emit onAddObject(id);
 
 						if (m_create_type == Level::OBJECT_TYPE_TRIGGER)
@@ -1156,7 +1158,7 @@ void GLWidget::keyReleaseEvent(QKeyEvent* event)
 					}
 
 					// generate polygon
-					int id = m_level->insertObject(points, uvs, num_points, m_create_type, name);
+					int id = m_level->insertObject(points, uvs, num_points, m_create_type, name, m_create_poly_color);
 					emit onAddObject(id);
 
 					if (m_create_type == Level::OBJECT_TYPE_TRIGGER)
@@ -1327,7 +1329,7 @@ void GLWidget::keyReleaseEvent(QKeyEvent* event)
 						uvs[i] = glm::vec2(prefab->points[i].z, prefab->points[i].w);
 					}
 
-					int id = m_level->insertObject(points, uvs, prefab->num_points, Level::OBJECT_TYPE_GEOVIS, prefab->name);
+					int id = m_level->insertObject(points, uvs, prefab->num_points, Level::OBJECT_TYPE_GEOVIS, prefab->name, prefab->color);
 					emit onAddObject(id);
 
 					Level::Object* obj = m_level->getObjectById(id);
@@ -1468,6 +1470,7 @@ void GLWidget::initializeGL()
 
 	m_level_shader.position		= m_level_program->attributeLocation("a_position");
 	m_level_shader.tex_coord	= m_level_program->attributeLocation("a_texcoord");
+	m_level_shader.color		= m_level_program->attributeLocation("a_color");
 	m_level_shader.location		= m_level_program->uniformLocation("v_location");
 	m_level_shader.scale		= m_level_program->uniformLocation("v_scale");
 	m_level_shader.vp_matrix	= m_level_program->uniformLocation("m_vp_matrix");
@@ -2255,12 +2258,15 @@ void GLWidget::paintGL()
 			m_level_program->setAttributeArray(m_level_shader.position, (GLfloat*)geo, 3, sizeof(Tilemap::VBO));
 			m_level_program->enableAttributeArray(m_level_shader.tex_coord);
 			m_level_program->setAttributeArray(m_level_shader.tex_coord, (GLfloat*)geo+3, 2, sizeof(Tilemap::VBO));
+			m_level_program->enableAttributeArray(m_level_shader.color);
+			m_level_program->setAttributeArray(m_level_shader.color, GL_UNSIGNED_BYTE, (GLbyte*)geo + 20, 4, sizeof(Tilemap::VBO));
 
 			glBindTexture(GL_TEXTURE_2D, m_base_tex);
 			glDrawArrays(GL_TRIANGLES, 0, num_tris*3);
 
 			m_level_program->disableAttributeArray(m_level_shader.position);
 			m_level_program->disableAttributeArray(m_level_shader.tex_coord);
+			m_level_program->disableAttributeArray(m_level_shader.color);
 		}
 	}
 

@@ -12,6 +12,7 @@ public:
 	{
 		glm::vec3 pos;
 		glm::vec2 uv;
+		unsigned int color;
 	};
 
 	struct Config
@@ -27,6 +28,7 @@ public:
 	{
 		glm::vec2 points[4];
 		std::string name;
+		unsigned int color;
 		int id;
 	};
 
@@ -41,7 +43,7 @@ public:
 	void edit(int x, int y, int tile);
 	void tesselateAll();
 	const Tilemap::Config& getConfig();
-	int insertTile(std::string name, glm::vec2* points);
+	int insertTile(std::string name, glm::vec2* points, unsigned int color);
 	bool removeTile(int id);
 	void removeTiles();
 	int getNumTiles();

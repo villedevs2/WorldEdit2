@@ -54,13 +54,15 @@ TiledObject::~TiledObject()
 // init static member
 Level* Level::Object::m_parent = NULL;
 
-Level::Object::Object(int id, glm::vec2* points, glm::vec2* uvs, int num_points, ObjectType type, std::string& name)
+Level::Object::Object(int id, glm::vec2* points, glm::vec2* uvs, int num_points, ObjectType type, std::string& name, unsigned int color)
 {
 	m_num_points = num_points;
 	m_type = type;
 	m_name = name;
 	m_id = id;
 	m_z = 0;
+
+	m_color = color;
 
 	for (int i=0; i < num_points; i++)
 	{
@@ -286,6 +288,11 @@ void Level::Object::setZ(int z)
 	}
 }
 
+unsigned int Level::Object::getColor()
+{
+	return m_color;
+}
+
 void Level::Object::copy(const Level::Object& source)
 {
 	reset();
@@ -357,12 +364,12 @@ Level::~Level()
 }
 
 
-int Level::insertObject(glm::vec2* points, glm::vec2* uvs, int num_points, ObjectType type, std::string name)
+int Level::insertObject(glm::vec2* points, glm::vec2* uvs, int num_points, ObjectType type, std::string name, unsigned int color)
 {
 	int id = m_cumulative_object_id;
 	m_cumulative_object_id++;
 
-	Level::Object* obj = new Level::Object(id, points, uvs, num_points, type, name);
+	Level::Object* obj = new Level::Object(id, points, uvs, num_points, type, name, color);
 
 	m_objects.push_back(obj);
 
@@ -510,9 +517,9 @@ int Level::tesselateObject(int object)
 			glm::vec2 uv1 = obj->m_uvs[poly-1];
 			glm::vec2 uv2 = obj->m_uvs[poly];
 
-			m_vbo[vbo][index+0].position = p0;		m_vbo[vbo][index+0].uv = uv0;
-			m_vbo[vbo][index+1].position = p1;		m_vbo[vbo][index+1].uv = uv1;
-			m_vbo[vbo][index+2].position = p2;		m_vbo[vbo][index+2].uv = uv2;
+			m_vbo[vbo][index + 0].position = p0;		m_vbo[vbo][index + 0].uv = uv0;		m_vbo[vbo][index + 0].color = obj->m_color;
+			m_vbo[vbo][index + 1].position = p1;		m_vbo[vbo][index + 1].uv = uv1;		m_vbo[vbo][index + 1].color = obj->m_color;
+			m_vbo[vbo][index + 2].position = p2;		m_vbo[vbo][index + 2].uv = uv2;		m_vbo[vbo][index + 2].color = obj->m_color;
 
 			index += 3;
 		}
@@ -751,7 +758,7 @@ const Level::Prefab* Level::getPrefabById(int id)
 	return NULL;
 }
 
-int Level::insertPrefab(std::string name, glm::vec4* points, int num_points)
+int Level::insertPrefab(std::string name, glm::vec4* points, int num_points, unsigned int color)
 {
 	assert(num_points >= 0 && num_points <= 8);
 
@@ -785,6 +792,8 @@ int Level::insertPrefab(std::string name, glm::vec4* points, int num_points)
 	prefab.anchor_bottomy = maxy;
 	prefab.id = m_cumulative_prefab_id;
 	m_cumulative_prefab_id++;
+
+	prefab.color = color;
 
 	m_prefabs.push_back(prefab);
 
@@ -849,10 +858,10 @@ const Tilemap::Config& Level::getTilemapConfig()
 }
 
 
-int Level::insertTile(std::string name, glm::vec2* points)
+int Level::insertTile(std::string name, glm::vec2* points, unsigned int color)
 {
 	setModified();
-	return m_tilemap->insertTile(name, points);
+	return m_tilemap->insertTile(name, points, color);
 }
 
 void Level::removeTile(int id)

@@ -91,7 +91,7 @@ public:
 
 		static const int NUM_PARAMS = 8;
 
-		Object(int id, glm::vec2* points, glm::vec2* uvs, int num_points, ObjectType type, std::string& name);
+		Object(int id, glm::vec2* points, glm::vec2* uvs, int num_points, ObjectType type, std::string& name, unsigned int color);
 		~Object();
 
 		bool pointInside(glm::vec2 point, float threshold);
@@ -113,11 +113,13 @@ public:
 		glm::vec2 getBoundingMax();
 		void setZ(int z);
 		int getZ();
+		unsigned int getColor();
 
 	private:
 		glm::vec2 m_points[8];
 		glm::vec2 m_uvs[8];
 		int m_num_points;
+		unsigned int m_color;
 		ObjectType m_type;
 		std::string m_name;
 		float m_minx;
@@ -138,6 +140,7 @@ public:
 	{
 		glm::vec3 position;
 		glm::vec2 uv;
+		unsigned int color;
 	};
 
 	struct Prefab
@@ -150,12 +153,13 @@ public:
 		float anchor_topy;
 		float anchor_rightx;
 		float anchor_bottomy;
+		unsigned int color;
 	};
 
 	Level();
 	~Level();
 
-	int insertObject(glm::vec2* points, glm::vec2* uvs, int num_points, ObjectType type, std::string name);
+	int insertObject(glm::vec2* points, glm::vec2* uvs, int num_points, ObjectType type, std::string name, unsigned int color);
 	void editObjectGeo(int object, glm::vec2* points, glm::vec2* uvs);
 	void editObjectGeo(int object, glm::vec2* points);
 	void editObjectUVs(int object, glm::vec2* uvs);
@@ -179,7 +183,7 @@ public:
 	int getNumPrefabs();
 	const Level::Prefab* getPrefab(int index);
 	const Level::Prefab* getPrefabById(int id);
-	int insertPrefab(std::string name, glm::vec4* points, int num_points);
+	int insertPrefab(std::string name, glm::vec4* points, int num_points, unsigned int color);
 	void removePrefab(int id);
 	void removePrefabs();
 
@@ -189,7 +193,7 @@ public:
 	float* getTilemapVBO();
 	int numTilemapTris();
 	const Tilemap::Config& getTilemapConfig();
-	int insertTile(std::string name, glm::vec2* points);
+	int insertTile(std::string name, glm::vec2* points, unsigned int color);
 	void removeTile(int id);
 	void removeTiles();
 	int getNumTiles();

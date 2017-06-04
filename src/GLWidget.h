@@ -160,6 +160,7 @@ private:
 
 	Level::ObjectType m_create_type;
 	int m_create_trigger_type;
+	unsigned int m_create_poly_color;
 
 	// select/edit stuff
 	int m_selected_object;

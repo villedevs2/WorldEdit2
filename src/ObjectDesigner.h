@@ -84,6 +84,8 @@ private:
 	PolygonDef* m_polydef;
 	ObjectPrefabs* m_prefabs;
 	Level* m_level;
+
+	unsigned int m_color;
 	
 	float m_zoom;
 

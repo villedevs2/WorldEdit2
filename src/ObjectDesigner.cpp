@@ -15,6 +15,8 @@ ObjectDesignerWidget::ObjectDesignerWidget(QWidget* parent, ObjectPrefabs* prefa
 
 	m_texture = NULL;
 
+	m_color = 0xffffffff;
+
 	m_validpoly_color = QColor(0, 224, 0, 128);
 	m_errorpoly_color = QColor(224, 0, 0, 128);
 	m_validline_color = QColor(0, 224, 0);
@@ -230,7 +232,7 @@ void ObjectDesignerWidget::insertObject(QString& name)
 		}
 
 
-		int id = m_level->insertPrefab(name.toStdString(), npoints, num_points);
+		int id = m_level->insertPrefab(name.toStdString(), npoints, num_points, m_color);
 
 		emit m_prefabs->add(id);
 
@@ -252,7 +254,7 @@ void ObjectDesignerWidget::insertTile(QString& name)
 			npoints[i] = p;
 		}
 
-		int id = m_level->insertTile(name.toStdString(), npoints);
+		int id = m_level->insertTile(name.toStdString(), npoints, m_color);
 		emit onInsertTile(id);
 
 		m_polydef->reset();

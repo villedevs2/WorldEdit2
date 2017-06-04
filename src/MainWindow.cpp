@@ -1407,6 +1407,8 @@ void MainWindow::loadPrefabs()
 		QString texture_name = "";
 		QString prefab_name = "";
 
+		unsigned int prefab_color = 0;
+
 		points.clear();
 		m_objprefabs->reset();
 
@@ -1435,6 +1437,10 @@ void MainWindow::loadPrefabs()
 						if (attr_name == "name")
 						{
 							prefab_name = attrs[i].value().toString();
+						}
+						else if (attr_name == "color")
+						{
+							prefab_color = attrs[i].value().toInt();
 						}
 					}
 
@@ -1484,7 +1490,7 @@ void MainWindow::loadPrefabs()
 						pps[i] = points[i];
 					}
 
-					int id = m_level->insertPrefab(name, pps, num_points);
+					int id = m_level->insertPrefab(name, pps, num_points, prefab_color);
 					emit m_objprefabs->add(id);
 
 					points.clear();
@@ -1554,6 +1560,7 @@ void MainWindow::savePrefabs()
 
 			output.writeStartElement("prefab");		// <prefab>
 			output.writeAttribute("name", tr("%1").arg(prefab->name.c_str()));
+			output.writeAttribute("color", tr("%1").arg(prefab->color));
 
 			for (int p=0; p < prefab->num_points; p++)
 			{
@@ -1785,7 +1792,7 @@ bool MainWindow::readLevelFile(QString& filename)
 					uvs[i] = points[i].uv;
 				}
 
-				int id = m_level->insertObject(pps, uvs, num_points, (Level::ObjectType)object_type, object_name.toStdString());
+				int id = m_level->insertObject(pps, uvs, num_points, (Level::ObjectType)object_type, object_name.toStdString(), 0xffffffff);
 				emit m_objbrowser->add(id);
 
 				// set params
@@ -1833,7 +1840,7 @@ bool MainWindow::readLevelFile(QString& filename)
 					pps[i].w = points[i].uv.y;
 				}
 
-				int id = m_level->insertPrefab(name, pps, num_points);
+				int id = m_level->insertPrefab(name, pps, num_points, 0xffffffff);
 				emit m_objprefabs->add(id);
 
 				points.clear();
@@ -1956,7 +1963,7 @@ bool MainWindow::readBinaryProjectFile(QString& filename)
 	BinaryFile input;
 
 	const unsigned int blpf_id = 0x424c5046;
-	const unsigned int blpf_version = 0x10001;
+	const unsigned int blpf_version = 0x10002;
 	const unsigned int affix_id = 0x41465858;
 	
 	Level::Object::Param params[Level::Object::NUM_PARAMS];
@@ -2026,9 +2033,11 @@ bool MainWindow::readBinaryProjectFile(QString& filename)
 				points[j] = glm::vec4(x, y, u, v);
 			}
 
+			unsigned int prefab_color = input.read_dword();
+
 			std::string name = prefab_name.toStdString();
 
-			int id = m_level->insertPrefab(name, points, num_points);
+			int id = m_level->insertPrefab(name, points, num_points, prefab_color);
 			emit m_objprefabs->add(id);
 		}
 
@@ -2055,6 +2064,8 @@ bool MainWindow::readBinaryProjectFile(QString& filename)
 			int objtype = input.read_dword();
 			int objz = input.read_dword();
 
+			unsigned int object_color = input.read_dword();
+
 			glm::vec2 pps[8];
 			glm::vec2 uvs[8];
 
@@ -2074,7 +2085,7 @@ bool MainWindow::readBinaryProjectFile(QString& filename)
 				params[j].i = input.read_dword();
 			}
 
-			int id = m_level->insertObject(pps, uvs, num_points, (Level::ObjectType)objtype, object_name.toStdString());
+			int id = m_level->insertObject(pps, uvs, num_points, (Level::ObjectType)objtype, object_name.toStdString(), object_color);
 			emit m_objbrowser->add(id);
 
 			// set params
@@ -2117,7 +2128,9 @@ bool MainWindow::readBinaryProjectFile(QString& filename)
 				pps[j] = glm::vec2(x, y);
 			}
 
-			int id = m_level->insertTile(tile_name.toStdString(), pps);
+			unsigned int tile_color = input.read_dword();
+
+			int id = m_level->insertTile(tile_name.toStdString(), pps, tile_color);
 			emit m_tileset_window->add(id);
 		}
 

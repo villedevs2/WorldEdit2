@@ -1,5 +1,5 @@
 Balance Project Binary File Format
-v1.1 / 16.11.2016
+v1.2 / 04.06.2017
 
 Header
 ------
@@ -50,6 +50,7 @@ Prefab structure
 n bytes		| Prefab name (null-terminated)
 4 bytes		| Num points
 n bytes		| Points [4 floats: X, Y, U, V]
+4 bytes		| Prefab color
 
 Object structure
 ----------------
@@ -57,6 +58,7 @@ Object structure
 n bytes		| Object name (null-terminated)
 4 bytes		| Object type
 4 bytes		| Object Z
+4 bytes		| Object color
 4 bytes		| Num points
 n bytes		| Points [4 floats: X, Y, U, V]
 8 dwords	| Params
@@ -66,3 +68,4 @@ Tile structure
 
 n bytes		| Tile name (null-terminated)
 n bytes		| 4x [2 floats: U, V]
+4 bytes		| Tile color

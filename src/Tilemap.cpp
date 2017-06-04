@@ -164,23 +164,23 @@ void Tilemap::tesselateTile(int x, int y)
 	if (tile == -1)
 	{
 		// make degen geo
-		m_vb[vb_index+0].pos = glm::vec3(0, 0, 0); m_vb[vb_index+0].uv = glm::vec2(0, 0);
-		m_vb[vb_index+1].pos = glm::vec3(0, 0, 0); m_vb[vb_index+1].uv = glm::vec2(0, 0);
-		m_vb[vb_index+2].pos = glm::vec3(0, 0, 0); m_vb[vb_index+2].uv = glm::vec2(0, 0);
-		m_vb[vb_index+3].pos = glm::vec3(0, 0, 0); m_vb[vb_index+3].uv = glm::vec2(0, 0);
-		m_vb[vb_index+4].pos = glm::vec3(0, 0, 0); m_vb[vb_index+4].uv = glm::vec2(0, 0);
-		m_vb[vb_index+5].pos = glm::vec3(0, 0, 0); m_vb[vb_index+5].uv = glm::vec2(0, 0);
+		m_vb[vb_index + 0].pos = glm::vec3(0, 0, 0);		m_vb[vb_index + 0].uv = glm::vec2(0, 0);		m_vb[vb_index + 0].color = 0;
+		m_vb[vb_index + 1].pos = glm::vec3(0, 0, 0);		m_vb[vb_index + 1].uv = glm::vec2(0, 0);		m_vb[vb_index + 1].color = 0;
+		m_vb[vb_index + 2].pos = glm::vec3(0, 0, 0);		m_vb[vb_index + 2].uv = glm::vec2(0, 0);		m_vb[vb_index + 2].color = 0;
+		m_vb[vb_index + 3].pos = glm::vec3(0, 0, 0);		m_vb[vb_index + 3].uv = glm::vec2(0, 0);		m_vb[vb_index + 3].color = 0;
+		m_vb[vb_index + 4].pos = glm::vec3(0, 0, 0);		m_vb[vb_index + 4].uv = glm::vec2(0, 0);		m_vb[vb_index + 4].color = 0;
+		m_vb[vb_index + 5].pos = glm::vec3(0, 0, 0);		m_vb[vb_index + 5].uv = glm::vec2(0, 0);		m_vb[vb_index + 5].color = 0;
 	}
 	else
 	{
 		Tile& tiledata = m_tiles.at(tile);
 
-		m_vb[vb_index+0].pos = glm::vec3(tx1, ty1, z); m_vb[vb_index+0].uv = tiledata.points[0];
-		m_vb[vb_index+1].pos = glm::vec3(tx1, ty2, z); m_vb[vb_index+1].uv = tiledata.points[1];
-		m_vb[vb_index+2].pos = glm::vec3(tx2, ty2, z); m_vb[vb_index+2].uv = tiledata.points[2];
-		m_vb[vb_index+3].pos = glm::vec3(tx1, ty1, z); m_vb[vb_index+3].uv = tiledata.points[0];
-		m_vb[vb_index+4].pos = glm::vec3(tx2, ty2, z); m_vb[vb_index+4].uv = tiledata.points[2];
-		m_vb[vb_index+5].pos = glm::vec3(tx2, ty1, z); m_vb[vb_index+5].uv = tiledata.points[3];
+		m_vb[vb_index + 0].pos = glm::vec3(tx1, ty1, z);	m_vb[vb_index + 0].uv = tiledata.points[0];		m_vb[vb_index + 0].color = tiledata.color;
+		m_vb[vb_index + 1].pos = glm::vec3(tx1, ty2, z);	m_vb[vb_index + 1].uv = tiledata.points[1];		m_vb[vb_index + 1].color = tiledata.color;
+		m_vb[vb_index + 2].pos = glm::vec3(tx2, ty2, z);	m_vb[vb_index + 2].uv = tiledata.points[2];		m_vb[vb_index + 2].color = tiledata.color;
+		m_vb[vb_index + 3].pos = glm::vec3(tx1, ty1, z);	m_vb[vb_index + 3].uv = tiledata.points[0];		m_vb[vb_index + 3].color = tiledata.color;
+		m_vb[vb_index + 4].pos = glm::vec3(tx2, ty2, z);	m_vb[vb_index + 4].uv = tiledata.points[2];		m_vb[vb_index + 4].color = tiledata.color;
+		m_vb[vb_index + 5].pos = glm::vec3(tx2, ty1, z);	m_vb[vb_index + 5].uv = tiledata.points[3];		m_vb[vb_index + 5].color = tiledata.color;
 	}
 }
 
@@ -224,7 +224,7 @@ const Tilemap::Config& Tilemap::getConfig()
 }
 
 
-int Tilemap::insertTile(std::string name, glm::vec2* points)
+int Tilemap::insertTile(std::string name, glm::vec2* points, unsigned int color)
 {
 	Tile tile;
 	for (int i=0; i < 4; i++)
@@ -234,6 +234,8 @@ int Tilemap::insertTile(std::string name, glm::vec2* points)
 	tile.name = name;
 	tile.id = m_cumulative_tile_id;
 	m_cumulative_tile_id++;
+
+	tile.color = color;
 
 	m_tiles.push_back(tile);
 	return tile.id;
