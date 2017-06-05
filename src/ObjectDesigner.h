@@ -11,6 +11,7 @@
 #include <qpushbutton.h>
 #include <qinputdialog.h>
 #include <qmessagebox.h>
+#include <qcolordialog.h>
 
 #include "Level.h"
 #include "PolygonDef.h"
@@ -50,6 +51,7 @@ public slots:
 	void resetObject();
 	void insertObject(QString& name);
 	void insertTile(QString& name);
+	void setColor(QColor color);
 
 protected:
 	void paintEvent(QPaintEvent* event);
@@ -78,6 +80,8 @@ private:
 	QColor m_point_color;
 	QColor m_closedpoly_color;
 	QColor m_closedline_color;
+
+	QColor m_object_color;
 
 	QImage* m_texture;
 
@@ -151,6 +155,7 @@ public slots:
 	void toggleGrid();
 	void snapGrid();
 	void setGridSize(int size);
+	void chooseColor();
 
 private:
 	QMainWindow* m_window;	
@@ -161,6 +166,7 @@ private:
 	QToolBar* m_zoom_toolbar;
 	QToolBar* m_grid_toolbar;
 	QToolBar* m_control_toolbar;
+	QToolBar* m_color_toolbar;
 
 	QActionGroup* m_toolgroup;
 	QAction* m_draw_poly_action;
@@ -185,7 +191,13 @@ private:
 	QPushButton* m_reset_button;
 	QPushButton* m_insert_button;
 	QPushButton* m_inserttile_button;
+	
+	QWidget* m_color_widget;
+	QLabel* m_color_label;
+	QPushButton* m_color_button;
 
 	Level* m_level;
 	ObjectPrefabs* m_prefabs;
+
+	QColor m_object_color;
 };

@@ -42,6 +42,8 @@ ObjectDesignerWidget::ObjectDesignerWidget(QWidget* parent, ObjectPrefabs* prefa
 
 	m_show_grid = false;
 	m_snap_grid = false;
+
+	m_object_color = QColor(0, 0, 0, 255);
 }
 
 ObjectDesignerWidget::~ObjectDesignerWidget()
@@ -909,6 +911,11 @@ int ObjectDesignerWidget::numPoints()
 	return m_polydef->getNumPoints();
 }
 
+void ObjectDesignerWidget::setColor(QColor color)
+{
+	m_object_color = color;
+}
+
 
 
 
@@ -1039,6 +1046,25 @@ ObjectDesigner::ObjectDesigner(QWidget* parent, Level* level, ObjectPrefabs* pre
 	m_inserttile_button->setFocusPolicy(Qt::NoFocus);
 	connect(m_inserttile_button, SIGNAL(clicked()), this, SLOT(insertTile()));
 
+	m_color_button = new QPushButton("", this);
+	m_color_button->setFocusPolicy(Qt::NoFocus);
+	m_color_button->setStyleSheet(tr("background-color: #%1%2%3").arg(m_object_color.red(), 2, 16, QChar('0')).arg(m_object_color.green(), 2, 16, QChar('0')).arg(m_object_color.blue(), 2, 16, QChar('0')));
+	m_color_button->setMaximumHeight(25);
+	m_color_button->setMaximumWidth(25);
+	connect(m_color_button, SIGNAL(clicked()), this, SLOT(chooseColor()));
+	m_color_label = new QLabel("Color:");
+	QBoxLayout* color_layout = new QBoxLayout(QBoxLayout::LeftToRight);
+	color_layout->setSpacing(2);
+	color_layout->setMargin(1);
+	color_layout->addWidget(m_color_label);
+	color_layout->addWidget(m_color_button);
+
+	m_color_widget = new QWidget;
+	m_color_widget->setMaximumHeight(30);
+	m_color_widget->setLayout(color_layout);
+
+
+
 
 	// add toolbar
 	m_edit_toolbar = new QToolBar(m_window);
@@ -1058,6 +1084,10 @@ ObjectDesigner::ObjectDesigner(QWidget* parent, Level* level, ObjectPrefabs* pre
 	m_grid_toolbar->addAction(m_snapgrid_action);
 	m_grid_toolbar->addWidget(m_gridsize_widget);
 	m_window->addToolBar(m_grid_toolbar);
+
+	m_color_toolbar = new QToolBar(m_window);
+	m_color_toolbar->addWidget(m_color_widget);
+	m_window->addToolBar(m_color_toolbar);
 
 	m_control_toolbar = new QToolBar(m_window);
 	m_control_toolbar->addWidget(m_reset_button);
@@ -1197,4 +1227,16 @@ void ObjectDesigner::snapGrid()
 void ObjectDesigner::setGridSize(int size)
 {
 	emit m_widget->setGrid(size);
+}
+
+void ObjectDesigner::chooseColor()
+{
+	QColor result = QColorDialog::getColor(m_object_color, this, tr("Select object color"));
+	if (result.isValid())
+	{
+		emit m_widget->setColor(result);
+		m_color_button->setStyleSheet(tr("background-color: #%1%2%3").arg(result.red(), 2, 16, QChar('0')).arg(result.green(), 2, 16, QChar('0')).arg(result.blue(), 2, 16, QChar('0')));
+
+		m_object_color = result;
+	}
 }
