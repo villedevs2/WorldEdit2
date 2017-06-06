@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QtGui>
+#include <QGLWidget>
 #include <qdockwidget.h>
 #include <qmainwindow.h>
 #include <qtoolbar.h>
@@ -12,12 +13,16 @@
 #include <qinputdialog.h>
 #include <qmessagebox.h>
 #include <qcolordialog.h>
+#include <qglshaderprogram.h>
+
+#include <glm.hpp>
+#include <gtx/rotate_vector.hpp>
 
 #include "Level.h"
 #include "PolygonDef.h"
 #include "ObjectPrefabs.h"
 
-class ObjectDesignerWidget : public QWidget
+class ObjectDesignerWidget : public QGLWidget
 {
 	Q_OBJECT
 
@@ -60,7 +65,32 @@ protected:
 	void keyReleaseEvent(QKeyEvent* event);
 	void mouseMoveEvent(QMouseEvent* event);
 
+	void initializeGL();
+	void paintGL();
+	void resizeGL(int width, int height);
+
 private:
+	struct Shader
+	{
+		int location;
+		int scale;
+		int position;
+		int tex_coord;
+		int color;
+		int vp_matrix;
+		int rot_matrix;
+	};
+
+	struct VBO
+	{
+		glm::vec3 pos;
+		glm::vec2 uv;
+		unsigned int color;
+	};
+
+	QString loadShader(QString filename);
+	void loadTexture(QImage* texture);
+
 	glm::vec2 toScreenCoords(glm::vec2& point);
 	glm::vec2 toUVCoords(glm::vec2& point);
 	glm::vec2 snapToGrid(glm::vec2& point);
@@ -85,9 +115,20 @@ private:
 
 	QImage* m_texture;
 
+	float m_viewport_width;
+	float m_viewport_height;
+	float m_viewport_aspect;
+
+	GLuint m_shader;
+	GLuint m_base_tex;
+	QGLShaderProgram* m_level_program;
+	Shader m_level_shader;
+
 	PolygonDef* m_polydef;
 	ObjectPrefabs* m_prefabs;
 	Level* m_level;
+
+	VBO m_vbo[4];
 
 	unsigned int m_color;
 	

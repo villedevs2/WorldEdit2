@@ -105,6 +105,9 @@ private:
 	QLabel* m_prefabAlignLabel;
 	QComboBox* m_prefabAlignCombo;
 	QWidget* m_prefabAlignWidget;
+	QLabel* m_colorLabel;
+	QPushButton* m_colorButton;
+	QWidget* m_colorWidget;
 
 	QActionGroup* m_opgroup;
 	QAction* m_select_action;
@@ -172,6 +175,7 @@ private:
 	QShortcut* m_zoomout_shortcut;
 
 	QColor m_bgcolor;
+	QColor m_object_color;
 
 	bool m_enable_tilemap_widget;
 	TilemapWidget* m_tilemap_widget;
@@ -189,6 +193,7 @@ public slots:
 	void tilesetWindowClosed();
 	void tiledprefabsWindowClosed();
 	void setPrefabScale(double scale);
+	void setColor();
 
 private slots:
 	void newFile();

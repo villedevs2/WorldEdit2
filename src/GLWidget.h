@@ -93,6 +93,7 @@ public slots:
 	void setTileBrush(int tile);
 	void setTiledPrefabSize(int width, int height);
 	void setTiledPrefabTileSize(double size);
+	void setObjectColor(QColor color);
 
 protected:
 	void initializeGL();

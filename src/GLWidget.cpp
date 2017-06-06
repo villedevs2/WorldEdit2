@@ -75,6 +75,8 @@ GLWidget::GLWidget(QWidget *parent, Level* level)
 	m_tiledprefab_size = 1.0f;
 	m_tiledprefab_origin = glm::vec2(0, 0);
 
+	m_create_poly_color = 0xffffffff;
+
 	reset();
 }
 
@@ -346,6 +348,13 @@ void GLWidget::setPrefabAlign(int align)
 void GLWidget::setBGColor(QColor color)
 {
 	m_bgcolor = color;
+
+	update();
+}
+
+void GLWidget::setObjectColor(QColor color)
+{
+	m_create_poly_color = 0xff000000 | (color.blue() << 16) | (color.green() << 8) | color.red();
 
 	update();
 }
@@ -1403,6 +1412,8 @@ QString GLWidget::loadShader(QString filename)
 
 void GLWidget::loadTexture(QImage* texture)
 {
+	makeCurrent();
+
 	if (glIsTexture(m_base_tex))
 		glDeleteTextures(1, &m_base_tex);
 	glGenTextures(1, &m_base_tex);
@@ -1450,6 +1461,8 @@ void GLWidget::loadTexture(QImage* texture)
 				 pixels);
 
 	delete [] pixels;
+
+	doneCurrent();
 }
 
 void GLWidget::initializeGL()
@@ -2154,6 +2167,8 @@ void GLWidget::renderTilemapBorders(QPainter& painter)
 // render 
 void GLWidget::paintGL()
 {
+	makeCurrent();
+
 	QPainter painter;
 	painter.begin(this);
 
@@ -2292,12 +2307,15 @@ void GLWidget::paintGL()
 			m_level_program->setAttributeArray(m_level_shader.position, (GLfloat*)static_geo, 3, sizeof(Level::VBO));
 			m_level_program->enableAttributeArray(m_level_shader.tex_coord);
 			m_level_program->setAttributeArray(m_level_shader.tex_coord, (GLfloat*)static_geo+3, 2, sizeof(Level::VBO));
+			m_level_program->enableAttributeArray(m_level_shader.color);
+			m_level_program->setAttributeArray(m_level_shader.color, GL_UNSIGNED_BYTE, (GLbyte*)static_geo + 20, 4, sizeof(Level::VBO));
 
 			glBindTexture(GL_TEXTURE_2D, m_base_tex);
 			glDrawArrays(GL_TRIANGLES, 0, num_static_verts);
 
 			m_level_program->disableAttributeArray(m_level_shader.position);
 			m_level_program->disableAttributeArray(m_level_shader.tex_coord);
+			m_level_program->disableAttributeArray(m_level_shader.color);
 		}
 	}
 
@@ -2443,17 +2461,21 @@ void GLWidget::paintGL()
 
 	painter.end();
 
-	makeCurrent();
+	doneCurrent();
 }
 
 void GLWidget::resizeGL(int width, int height)
 {
+	makeCurrent();
+
 	glViewport(0, 0, width, height);
 	glScissor(0, 0, width, height);
 
 	m_viewport_width = width;
 	m_viewport_height = height;
 	m_viewport_aspect = m_viewport_width / m_viewport_height;
+
+	doneCurrent();
 
 	update();
 }

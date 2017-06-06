@@ -1,5 +1,5 @@
 Balance Project Binary File Format
-v1.2 / 04.06.2017
+v1.3 / 06.06.2017
 
 Header
 ------
@@ -7,6 +7,8 @@ Header
 4 bytes		| Format ID (BLPF)
 4 bytes		| Header version 0x10001
 n bytes		| Texture atlas name (null-terminated)
+
+16x 4 bytes	| Customs colors (16x 24-bit RGB)
 
 4 bytes		| Num of prefabs
 n bytes		| Prefab structures

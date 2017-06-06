@@ -1,6 +1,6 @@
 #include "ObjectDesigner.h"
 
-ObjectDesignerWidget::ObjectDesignerWidget(QWidget* parent, ObjectPrefabs* prefabs, Level* level) : QWidget(parent)
+ObjectDesignerWidget::ObjectDesignerWidget(QWidget* parent, ObjectPrefabs* prefabs, Level* level) : QGLWidget(QGLFormat(QGL::SampleBuffers), parent)
 {
 	m_prefabs = prefabs;
 	m_level = level;
@@ -23,7 +23,7 @@ ObjectDesignerWidget::ObjectDesignerWidget(QWidget* parent, ObjectPrefabs* prefa
 	m_errorline_color = QColor(224, 0, 0);
 	m_point_color = QColor(224, 224, 224);
 	m_closedpoly_color = QColor(224, 160, 0, 128);
-	m_closedline_color = QColor(224, 160, 0, 0);
+	m_closedline_color = QColor(224, 160, 0, 128);
 
 	m_bgcolor = QColor(48, 48, 48, 255);
 
@@ -51,9 +51,226 @@ ObjectDesignerWidget::~ObjectDesignerWidget()
 	delete m_polydef;
 }
 
+
+QString ObjectDesignerWidget::loadShader(QString filename)
+{
+	QFile file;
+	QByteArray bytes;
+
+	file.setFileName(filename);
+	file.open(QIODevice::ReadOnly);
+	bytes = file.readAll();
+	QString shader(bytes);
+	file.close();
+
+	return bytes;
+}
+
+void ObjectDesignerWidget::loadTexture(QImage* texture)
+{
+	makeCurrent();
+
+	if (texture == nullptr)
+		return;
+
+	if (glIsTexture(m_base_tex))
+		glDeleteTextures(1, &m_base_tex);
+	glGenTextures(1, &m_base_tex);
+	glBindTexture(GL_TEXTURE_2D, m_base_tex);
+
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+
+	int width = texture->width();
+	int height = texture->height();
+
+	char *pixels = new char[width * height * 4];
+
+	int index = 0;
+	for (int j = 0; j < height; j++)
+	{
+		QRgb *scan = (QRgb*)texture->scanLine(j);
+
+		for (int i = 0; i < width; i++)
+		{
+			int r = qRed(scan[i]);
+			int g = qGreen(scan[i]);
+			int b = qBlue(scan[i]);
+			int a = qAlpha(scan[i]);
+
+			pixels[index + 0] = r;
+			pixels[index + 1] = g;
+			pixels[index + 2] = b;
+			pixels[index + 3] = a;
+			index += 4;
+		}
+	}
+
+	glTexImage2D(GL_TEXTURE_2D,
+		0,
+		GL_RGBA,
+		width,
+		height,
+		0,
+		GL_RGBA,
+		GL_UNSIGNED_BYTE,
+		pixels);
+
+	delete[] pixels;
+
+	doneCurrent();
+}
+
+
+void ObjectDesignerWidget::initializeGL()
+{
+	QString level_vs_file = loadShader("level_vs.glsl");
+	QString level_fs_file = loadShader("level_fs.glsl");
+
+	m_level_program = new QGLShaderProgram(this);
+	m_level_program->addShaderFromSourceCode(QGLShader::Vertex, level_vs_file);
+	m_level_program->addShaderFromSourceCode(QGLShader::Fragment, level_fs_file);
+	m_level_program->link();
+
+	QString error = m_level_program->log();
+	std::string errors = error.toStdString();
+
+	m_level_shader.position = m_level_program->attributeLocation("a_position");
+	m_level_shader.tex_coord = m_level_program->attributeLocation("a_texcoord");
+	m_level_shader.color = m_level_program->attributeLocation("a_color");
+	m_level_shader.location = m_level_program->uniformLocation("v_location");
+	m_level_shader.scale = m_level_program->uniformLocation("v_scale");
+	m_level_shader.vp_matrix = m_level_program->uniformLocation("m_vp_matrix");
+	m_level_shader.rot_matrix = m_level_program->uniformLocation("m_rot_matrix");
+
+	m_vbo[0].pos = glm::vec3(0.0f, 0.0f, 0.0f);		m_vbo[0].uv = glm::vec2(0.0f, 0.0f);		m_vbo[0].color = 0xffffffff;
+	m_vbo[1].pos = glm::vec3(0.0f, 1.0f, 0.0f);		m_vbo[1].uv = glm::vec2(0.0f, 1.0f);		m_vbo[1].color = 0xffffffff;
+	m_vbo[2].pos = glm::vec3(1.0f, 1.0f, 0.0f);		m_vbo[2].uv = glm::vec2(1.0f, 1.0f);		m_vbo[2].color = 0xffffffff;
+	m_vbo[3].pos = glm::vec3(1.0f, 0.0f, 0.0f);		m_vbo[3].uv = glm::vec2(1.0f, 0.0f);		m_vbo[3].color = 0xffffffff;
+}
+
+void ObjectDesignerWidget::paintGL()
+{
+	makeCurrent();
+
+	QPoint mouse_p = this->mapFromGlobal(QCursor::pos());
+
+	QPainter painter;
+	painter.begin(this);
+
+	painter.beginNativePainting();
+
+	// opengl scene rendering
+	// --------------------------------------------------------------------------
+		glDisable(GL_CULL_FACE);
+	glDisable(GL_DEPTH_TEST);
+
+	qglClearColor(m_bgcolor);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	float aspect = (float)(width()) / (float)(height());
+	float halfh = 0.5f / m_zoom;
+	float halfw = halfh * aspect;
+	
+
+	// setup matrices
+	float level_vp_mat[4] = { 1.0f / halfw, 0.0f,
+		0.0f, 1.0f / halfh };
+
+	float level_rot_mat[4] = { 1.0f, 0.0f,
+		0.0f, 1.0f };
+
+	QMatrix2x2 vp_mat = QMatrix2x2(level_vp_mat);
+	QMatrix2x2 rot_mat = QMatrix2x2(level_rot_mat);
+
+	m_level_program->bind();
+
+	m_level_program->setUniformValue(m_level_shader.vp_matrix, vp_mat);
+	m_level_program->setUniformValue(m_level_shader.rot_matrix, rot_mat);
+	m_level_program->setUniformValue(m_level_shader.location, m_scroll.x, m_scroll.y);
+	m_level_program->setUniformValue(m_level_shader.scale, 1.0f, 1.0f);
+
+	m_level_program->enableAttributeArray(m_level_shader.position);
+	m_level_program->setAttributeArray(m_level_shader.position, (GLfloat*)m_vbo, 3, sizeof(VBO));
+	m_level_program->enableAttributeArray(m_level_shader.tex_coord);
+	m_level_program->setAttributeArray(m_level_shader.tex_coord, (GLfloat*)m_vbo + 3, 2, sizeof(VBO));
+	m_level_program->enableAttributeArray(m_level_shader.color);
+	m_level_program->setAttributeArray(m_level_shader.color, GL_UNSIGNED_BYTE, (GLbyte*)m_vbo + 20, 4, sizeof(VBO));
+
+	glBindTexture(GL_TEXTURE_2D, m_base_tex);
+	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+
+	m_level_program->disableAttributeArray(m_level_shader.position);
+	m_level_program->disableAttributeArray(m_level_shader.tex_coord);
+	m_level_program->disableAttributeArray(m_level_shader.color);
+
+	painter.endNativePainting();
+
+	/*
+	float w = (float)(width());
+	float h = (float)(height());
+
+
+	float area_texside = std::min(w, h) - 10;
+
+	float area_xleft = 0.0f - ((w - area_texside) / 2.0f);
+	float area_xright = w - ((w - area_texside) / 2.0f);
+	float area_ytop = 0.0f - ((h - area_texside) / 2.0f);
+	float area_ybottom = h - ((h - area_texside) / 2.0f);
+
+	if (m_texture)
+	{
+		glm::vec2 tl = toScreenCoords(glm::vec2(0.0f, 0.0f));
+		glm::vec2 br = toScreenCoords(glm::vec2(1.0f, 1.0f));
+		painter.drawImage(QRect(tl.x, tl.y, br.x - tl.x, br.y - tl.y), *m_texture);
+	}
+	*/
+
+	if (m_show_grid)
+		drawGrid(painter);
+
+	if (!m_poly_closed && (m_mode == MODE_DRAW_POLY || m_mode == MODE_DRAW_RECT))
+	{
+		if (m_mode == MODE_DRAW_POLY)
+			renderDrawPolyMode(painter);
+		else if (m_mode == MODE_DRAW_RECT)
+			renderDrawRectMode(painter);
+	}
+	else
+	{
+		renderClosedPoly(painter);
+	}
+
+	painter.end();
+
+	doneCurrent();
+
+}
+
+void ObjectDesignerWidget::resizeGL(int width, int height)
+{
+	makeCurrent();
+
+	glViewport(0, 0, width, height);
+	glScissor(0, 0, width, height);
+
+	m_viewport_width = width;
+	m_viewport_height = height;
+	m_viewport_aspect = m_viewport_width / m_viewport_height;
+
+	doneCurrent();
+
+	update();
+}
+
 void ObjectDesignerWidget::setTexture(QImage* texture)
 {
 	m_texture = texture;
+
+	loadTexture(m_texture);
 
 	update();
 }
@@ -864,6 +1081,7 @@ void ObjectDesignerWidget::drawGrid(QPainter& painter)
 
 void ObjectDesignerWidget::paintEvent(QPaintEvent* event)
 {
+	/*
 	QPoint mouse_p = this->mapFromGlobal(QCursor::pos());
 	QPainter painter;
 
@@ -904,6 +1122,8 @@ void ObjectDesignerWidget::paintEvent(QPaintEvent* event)
 	}
 
 	painter.end();
+	*/
+	paintGL();
 }
 
 int ObjectDesignerWidget::numPoints()
@@ -914,6 +1134,13 @@ int ObjectDesignerWidget::numPoints()
 void ObjectDesignerWidget::setColor(QColor color)
 {
 	m_object_color = color;
+
+	unsigned cc = 0xff000000 | (color.red() << 0) | (color.green() << 8) | (color.blue() << 16);
+
+	m_vbo[0].color = cc;
+	m_vbo[1].color = cc;
+	m_vbo[2].color = cc;
+	m_vbo[3].color = cc;
 }
 
 

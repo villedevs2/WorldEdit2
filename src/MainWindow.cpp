@@ -847,6 +847,20 @@ void MainWindow::tilemapConfigChange()
 }
 
 
+void MainWindow::setColor()
+{
+	QColor result = QColorDialog::getColor(m_object_color, this, tr("Select object color"));
+	if (result.isValid())
+	{
+		m_colorButton->setStyleSheet(tr("background-color: #%1%2%3").arg(result.red(), 2, 16, QChar('0')).arg(result.green(), 2, 16, QChar('0')).arg(result.blue(), 2, 16, QChar('0')));
+
+		m_object_color = result;
+
+		emit m_glwidget->setObjectColor(m_object_color);
+	}
+}
+
+
 void MainWindow::edgify()
 {
 	FILE *fout = fopen("edgifylog.txt", "wt");
@@ -1155,6 +1169,25 @@ void MainWindow::createActions()
 	m_defTypeWidget->setLayout(deftype_layout);
 
 
+	// color
+	m_colorButton = new QPushButton("", this);
+	m_colorButton->setFocusPolicy(Qt::NoFocus);
+	m_colorButton->setStyleSheet(tr("background-color: #%1%2%3").arg(m_object_color.red(), 2, 16, QChar('0')).arg(m_object_color.green(), 2, 16, QChar('0')).arg(m_object_color.blue(), 2, 16, QChar('0')));
+	m_colorButton->setMaximumHeight(25);
+	m_colorButton->setMaximumWidth(25);
+	connect(m_colorButton, SIGNAL(clicked()), this, SLOT(setColor()));
+	m_colorLabel = new QLabel("Color:");
+	QBoxLayout* color_layout = new QBoxLayout(QBoxLayout::LeftToRight);
+	color_layout->setSpacing(2);
+	color_layout->setMargin(1);
+	color_layout->addWidget(m_colorLabel);
+	color_layout->addWidget(m_colorButton);
+
+	m_colorWidget = new QWidget;
+	m_colorWidget->setMaximumHeight(30);
+	m_colorWidget->setLayout(color_layout);
+
+
 	// prefab scale
 	m_prefabScaleSpin = new QDoubleSpinBox();
 	m_prefabScaleSpin->setDecimals(2);
@@ -1287,6 +1320,7 @@ void MainWindow::createToolbars()
 
 	m_deftype_toolbar = addToolBar("Default Type");
 	m_deftype_toolbar->addWidget(m_defTypeWidget);
+	m_deftype_toolbar->addWidget(m_colorWidget);
 	m_deftype_toolbar->addWidget(m_prefabScaleWidget);
 	m_deftype_toolbar->addWidget(m_prefabDepthWidget);
 	m_deftype_toolbar->addWidget(m_prefabAlignWidget);
@@ -1339,6 +1373,11 @@ void MainWindow::newDocument()
 
 	// load default texture
 	changeTexture("blue_checker.png");
+
+	for (int i = 0; i < 16; i++)
+	{
+		QColorDialog::setCustomColor(i, QColor(255, 255, 255));
+	}
 }
 
 void MainWindow::resetControls()
@@ -1972,6 +2011,8 @@ bool MainWindow::readBinaryProjectFile(QString& filename)
 	QString prefab_name = "";
 	QString tile_name = "";
 
+	QColor custom_colors[16];
+
 	glm::vec4 points[8];
 
 	reset();
@@ -2003,6 +2044,13 @@ bool MainWindow::readBinaryProjectFile(QString& filename)
 
 		texture_name = QString(buf);
 
+
+		// custom colors
+		for (int i = 0; i < 16; i++)
+		{
+			unsigned int cc = input.read_dword();
+			custom_colors[i] = QColor((cc >> 16) & 0xff, (cc >> 8) & 0xff, cc & 0xff);
+		}
 
 		// --------------------
 
@@ -2255,6 +2303,12 @@ bool MainWindow::readBinaryProjectFile(QString& filename)
 		return false;
 	}
 
+	// apply custom colors
+	for (int i = 0; i < 16; i++)
+	{
+		QColorDialog::setCustomColor(i, custom_colors[i]);
+	}
+
 	return true;
 }
 
@@ -2288,6 +2342,15 @@ bool MainWindow::writeBinaryProjectFile(QString& filename)
 			output.write_byte(texname.at(i));
 		}
 		output.write_byte(0);		// null terminator
+
+
+		// custom colors
+		for (int i = 0; i < 16; i++)
+		{
+			QColor color = QColorDialog::customColor(i);
+			unsigned int cc = (color.red() << 16) | (color.green() << 8) | (color.blue());
+			output.write_dword(cc);
+		}
 
 
 		// num of prefabs
