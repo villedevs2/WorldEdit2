@@ -11,6 +11,7 @@
 #include <qlabel.h>
 #include <qlineedit.h>
 #include <qspinbox.h>
+#include <qcolordialog.h>
 
 #include "GLWidget.h"
 #include "Level.h"
@@ -49,6 +50,7 @@ public slots:
 	void moverDowntimeChanged(double value);
 	void moverTimeChanged(double value);
 	void setDefaultType(Level::ObjectType type);
+	void chooseColor();
 	
 private slots:
 	void setType(int index);
@@ -86,6 +88,10 @@ private:
 	QWidget* m_slider_widget;
 	QWidget* m_mover_widget;
 
+	QWidget* m_color_widget;
+	QPushButton* m_color_button;
+	QLabel* m_color_label;
+
 	QDoubleSpinBox* m_slider_angle;
 
 	QComboBox* m_trigger_type;
@@ -104,6 +110,8 @@ private:
 	int m_selected_object;
 
 	GLWidget::OperationMode m_opmode;
+
+	QColor m_object_color;
 
 	TypeBoxItem m_default_type;
 };

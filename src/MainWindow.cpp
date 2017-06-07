@@ -2002,7 +2002,7 @@ bool MainWindow::readBinaryProjectFile(QString& filename)
 	BinaryFile input;
 
 	const unsigned int blpf_id = 0x424c5046;
-	const unsigned int blpf_version = 0x10002;
+	const unsigned int blpf_version = 0x10003;
 	const unsigned int affix_id = 0x41465858;
 	
 	Level::Object::Param params[Level::Object::NUM_PARAMS];
@@ -2318,7 +2318,7 @@ bool MainWindow::writeBinaryProjectFile(QString& filename)
 	BinaryFile output;
 
 	const char blpf_id[4] = { 0x42, 0x4c, 0x50, 0x46 };
-	const unsigned int blpf_version = 0x10001;
+	const unsigned int blpf_version = 0x10003;
 
 	const char affix_id[4] = { 0x41, 0x46, 0x58, 0x58 };
 

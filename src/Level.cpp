@@ -293,6 +293,24 @@ unsigned int Level::Object::getColor()
 	return m_color;
 }
 
+void Level::Object::setColor(unsigned int color)
+{
+	if (m_color != color)
+	{
+		m_color = color;
+
+		// flag level modified
+		m_parent->setModified();
+
+		// flag for screen update
+		m_parent->m_vbo_updated = true;
+
+		// retesselate
+		int index = m_parent->getIndexById(this->m_id);
+		m_parent->tesselateObject(index);
+	}
+}
+
 void Level::Object::copy(const Level::Object& source)
 {
 	reset();

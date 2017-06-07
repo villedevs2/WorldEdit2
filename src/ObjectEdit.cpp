@@ -69,6 +69,27 @@ ObjectEdit::ObjectEdit(QWidget* parent, Level* level) : QDockWidget("Object Edit
 	connect(m_depth_edit, SIGNAL(valueChanged(int)), this, SLOT(setDepth(int)));
 	// ------------------------------------------------------------------------
 
+
+	// color
+	// ------------------------------------------------------------------------
+	m_color_button = new QPushButton("", this);
+	m_color_button->setFocusPolicy(Qt::NoFocus);
+	m_color_button->setStyleSheet(tr("background-color: #%1%2%3").arg(m_object_color.red(), 2, 16, QChar('0')).arg(m_object_color.green(), 2, 16, QChar('0')).arg(m_object_color.blue(), 2, 16, QChar('0')));
+	m_color_button->setMaximumHeight(25);
+	m_color_button->setMaximumWidth(25);
+	connect(m_color_button, SIGNAL(clicked()), this, SLOT(chooseColor()));
+	m_color_label = new QLabel("Color:");
+	QBoxLayout* color_layout = new QBoxLayout(QBoxLayout::LeftToRight);
+	color_layout->setSpacing(2);
+	color_layout->setMargin(1);
+	color_layout->addWidget(m_color_label);
+	color_layout->addWidget(m_color_button);
+
+	m_color_widget = new QWidget;
+	m_color_widget->setMaximumHeight(30);
+	m_color_widget->setLayout(color_layout);
+
+
 	
 	m_empty_widget = new QWidget;
 
@@ -224,6 +245,7 @@ ObjectEdit::ObjectEdit(QWidget* parent, Level* level) : QDockWidget("Object Edit
 	m_toolbar = new QToolBar(m_window);
 	m_toolbar->addWidget(m_type_select);
 	m_toolbar->addWidget(m_depth_select);
+	m_toolbar->addWidget(m_color_widget);
 	m_toolbar->setFloatable(false);
 	m_toolbar->setMovable(false);
 	m_window->addToolBar(m_toolbar);
@@ -323,6 +345,11 @@ void ObjectEdit::select(int object_id)
 
 		m_type_box->setEnabled(true);
 
+		m_color_button->setEnabled(true);
+		unsigned int cc = obj->getColor();
+		m_object_color = QColor(cc & 0xff, (cc >> 8) & 0xff, (cc >> 16) & 0xff);
+		m_color_button->setStyleSheet(tr("background-color: #%1%2%3").arg(m_object_color.red(), 2, 16, QChar('0')).arg(m_object_color.green(), 2, 16, QChar('0')).arg(m_object_color.blue(), 2, 16, QChar('0')));
+
 		switch (obj->getType())
 		{
 			case Level::OBJECT_TYPE_COLLISION:
@@ -410,6 +437,9 @@ void ObjectEdit::deselect()
 	m_depth_edit->setEnabled(false);
 	m_depth_edit->clear();
 	
+	m_color_button->setEnabled(false);
+	m_color_button->setStyleSheet(tr("background-color: #AFAFAF"));
+
 	m_stacked_widget->setCurrentWidget(m_empty_widget);
 }
 
@@ -621,6 +651,24 @@ void ObjectEdit::setTrigger(int index)
 			 m_opmode == GLWidget::MODE_DRAW_RECT)
 	{
 		emit onSetCreateTriggerType(index);
+	}
+}
+
+void ObjectEdit::chooseColor()
+{
+	QColor result = QColorDialog::getColor(m_object_color, this, tr("Select object color"));
+	if (result.isValid())
+	{
+		m_color_button->setStyleSheet(tr("background-color: #%1%2%3").arg(result.red(), 2, 16, QChar('0')).arg(result.green(), 2, 16, QChar('0')).arg(result.blue(), 2, 16, QChar('0')));
+
+		m_object_color = result;
+		if (m_selected_object >= 0)
+		{
+			Level::Object* obj = m_level->getObject(m_selected_object);
+
+			unsigned int cc = 0xff000000 | m_object_color.red() | (m_object_color.green() << 8) | (m_object_color.blue() << 16);
+			obj->setColor(cc);
+		}
 	}
 }
 

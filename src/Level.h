@@ -114,6 +114,7 @@ public:
 		void setZ(int z);
 		int getZ();
 		unsigned int getColor();
+		void setColor(unsigned int color);
 
 	private:
 		glm::vec2 m_points[8];
