@@ -2556,7 +2556,8 @@ void MainWindow::writeBLBFile(QString& filename)
 	const char blbx_id[4] = { 0x42, 0x4c, 0x42, 0x58 };
 	const char blox_id[4] = { 0x42, 0x4c, 0x4f, 0x58 };
 	const char tlex_id[4] = { 0x54, 0x4c, 0x45, 0x58 };
-	const unsigned int blb_version = 0x10000;
+	const char lafx_id[4] = { 0x4c, 0x41, 0x46, 0x58 };
+	const unsigned int blb_version = 0x10003;
 
 	int num_objects = m_level->numObjects();
 
@@ -2626,6 +2627,102 @@ void MainWindow::writeBLBFile(QString& filename)
 		output.write_float(level_maxx);
 		output.write_float(level_miny);
 		output.write_float(level_maxy);
+
+
+		// affixes
+		{
+			int num_affixes = 0;
+			bool timelimit_enable;
+			int timelimit_mins, timelimit_secs;
+			bool collect_enable[3];
+			QString collect_item[3];
+			int collect_amount[3];
+			bool dont_collect_enable;
+			QString dont_collect_item;
+			bool avoid_enable;
+			bool exit_enable;
+			bool inv_grav_enable;
+
+			m_level_conf->getTimelimit(&timelimit_enable, &timelimit_mins, &timelimit_secs);
+			m_level_conf->getCollect1(&collect_enable[0], &collect_item[0], &collect_amount[0]);
+			m_level_conf->getCollect2(&collect_enable[1], &collect_item[1], &collect_amount[1]);
+			m_level_conf->getCollect3(&collect_enable[2], &collect_item[2], &collect_amount[2]);
+			m_level_conf->getDontcollect(&dont_collect_enable, &dont_collect_item);
+			m_level_conf->getAvoid(&avoid_enable);
+			m_level_conf->getExit(&exit_enable);
+			m_level_conf->getGravity(&inv_grav_enable);
+
+			if (timelimit_enable)
+				num_affixes++;
+			if (collect_enable[0])
+				num_affixes++;
+			if (collect_enable[1])
+				num_affixes++;
+			if (collect_enable[2])
+				num_affixes++;
+			if (dont_collect_enable)
+				num_affixes++;
+			if (avoid_enable)
+				num_affixes++;
+			if (exit_enable)
+				num_affixes++;
+			if (inv_grav_enable)
+				num_affixes++;
+
+			output.write_dword(num_affixes);
+
+			if (timelimit_enable)
+			{
+				output.write((char*)lafx_id, 4);
+				output.write_dword(1);				// type = time limit
+				output.write_dword(timelimit_mins << 8 | timelimit_secs);
+			}
+			for (int i = 0; i < 3; i++)
+			{
+				if (collect_enable[i])
+				{
+					output.write((char*)lafx_id, 4);
+					output.write_dword(2);			// type = collect
+					output.write_dword(collect_amount[i]);
+
+					// item name as null-terminated string
+					QByteArray obname = collect_item[i].toLocal8Bit();
+					for (int i = 0; i < obname.length(); i++)
+					{
+						output.write_byte(obname.at(i));
+					}
+					output.write_byte(0);	// null terminator
+				}
+			}
+			if (dont_collect_enable)
+			{
+				output.write((char*)lafx_id, 4);
+				output.write_dword(3);				// type = don't collect
+
+				// item name as null-terminated string
+				QByteArray obname = dont_collect_item.toLocal8Bit();
+				for (int i = 0; i < obname.length(); i++)
+				{
+					output.write_byte(obname.at(i));
+				}
+				output.write_byte(0);	// null terminator
+			}
+			if (avoid_enable)
+			{
+				output.write((char*)lafx_id, 4);
+				output.write_dword(4);				// type = avoid hazards
+			}
+			if (exit_enable)
+			{
+				output.write((char*)lafx_id, 4);
+				output.write_dword(5);				// type = find exit
+			}
+			if (inv_grav_enable)
+			{
+				output.write((char*)lafx_id, 4);
+				output.write_dword(6);				// type = inverse gravity
+			}
+		}
 
 		// Object ID
 		output.write((char*)blox_id, 4);

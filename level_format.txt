@@ -5,7 +5,7 @@ Header
 ------
 
 4 bytes		| Format ID (BLBX) 
-4 bytes		| Header version (0x00010000)
+4 bytes		| Header version (0x00010003)
 4 bytes		| Number of objects
 n bytes		| Texture name (null-terminated)
 4 bytes		| Level Min X
@@ -72,7 +72,7 @@ Affix parameters
 ----------------
 
 Time limit (1)		| 0 = Time: minutes (1 byte), seconds (1 byte)
-Collect	(2)		| 0 = Number of items, 1 = Collectable type
+Collect	(2)		| 0 = Number of items, 1 = Collectable type (string)
 Don't collect (3)	| 0 = Collectable type
 Don't hit hazards (4)	| No params
 Find exit (5)		| No params
