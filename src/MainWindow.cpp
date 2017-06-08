@@ -2647,6 +2647,9 @@ void MainWindow::writeBLBFile(QString& filename)
 			// Object Z
 			output.write_dword(z);
 
+			// object color
+			output.write_dword(obj->getColor());
+
 			// points
 			for (int p=0; p < num_points; p++)
 			{
@@ -2708,7 +2711,10 @@ void MainWindow::writeBLBFile(QString& filename)
 
 		for (int i=0; i < num_tiles; i++)
 		{
-			const Tilemap::Tile tile = m_level->getTile(i);			
+			const Tilemap::Tile tile = m_level->getTile(i);	
+
+			// tile color
+			output.write_dword(tile.color);
 
 			// UVs
 			for (int j=0; j < 4; j++)

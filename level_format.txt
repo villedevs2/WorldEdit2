@@ -1,5 +1,5 @@
 Balance Level Format Specification
-v1.2 / 13.11.2016
+v1.3 / 08.06.2017
 
 Header
 ------
@@ -32,6 +32,7 @@ Object
 4 bytes		| Object Type
 4 bytes		| Num points
 4 bytes		| Object Z
+4 bytes		| Object color (XRGB)
 n bytes		| Points
 n bytes		| Parameters (1-8, depending on object type)
 
@@ -57,6 +58,7 @@ Tile
 ----
 
 4 bytes		| Tile ID (TLEX)
+4 bytes		| Tile color (XRGB)
 32 bytes	| UV coords [4x UV-pairs]
 
 Level affix

@@ -134,7 +134,7 @@ ObjectEdit::ObjectEdit(QWidget* parent, Level* level) : QDockWidget("Object Edit
 	m_trigger_param2->setValidator(new QIntValidator());
 
 	QGridLayout* trigger_layout = new QGridLayout();
-	trigger_layout->addWidget(trigger_label,			0, 0, 1, 1);
+	trigger_layout->addWidget(trigger_label,		0, 0, 1, 1);
 	trigger_layout->addWidget(m_trigger_type,		0, 1, 1, 1);
 	trigger_layout->addWidget(trigger_angle_label,	0, 2, 1, 1);
 	trigger_layout->addWidget(m_trigger_angle,		0, 3, 1, 1);
