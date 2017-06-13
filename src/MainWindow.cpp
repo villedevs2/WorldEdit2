@@ -2631,7 +2631,6 @@ void MainWindow::writeBLBFile(QString& filename)
 
 		// affixes
 		{
-			int num_affixes = 0;
 			bool timelimit_enable;
 			int timelimit_mins, timelimit_secs;
 			bool collect_enable[3];
@@ -2643,6 +2642,8 @@ void MainWindow::writeBLBFile(QString& filename)
 			bool exit_enable;
 			bool inv_grav_enable;
 
+			unsigned int affix_bits = 0;
+
 			m_level_conf->getTimelimit(&timelimit_enable, &timelimit_mins, &timelimit_secs);
 			m_level_conf->getCollect1(&collect_enable[0], &collect_item[0], &collect_amount[0]);
 			m_level_conf->getCollect2(&collect_enable[1], &collect_item[1], &collect_amount[1]);
@@ -2652,53 +2653,36 @@ void MainWindow::writeBLBFile(QString& filename)
 			m_level_conf->getExit(&exit_enable);
 			m_level_conf->getGravity(&inv_grav_enable);
 
-			if (timelimit_enable)
-				num_affixes++;
-			if (collect_enable[0])
-				num_affixes++;
-			if (collect_enable[1])
-				num_affixes++;
-			if (collect_enable[2])
-				num_affixes++;
-			if (dont_collect_enable)
-				num_affixes++;
-			if (avoid_enable)
-				num_affixes++;
-			if (exit_enable)
-				num_affixes++;
-			if (inv_grav_enable)
-				num_affixes++;
+			if (timelimit_enable)		affix_bits |= 0x1;
+			if (collect_enable[0])		affix_bits |= 0x2;
+			if (collect_enable[1])		affix_bits |= 0x4;
+			if (collect_enable[2])		affix_bits |= 0x8;
+			if (dont_collect_enable)	affix_bits |= 0x10;
+			if (avoid_enable)			affix_bits |= 0x20;
+			if (exit_enable)			affix_bits |= 0x40;
+			if (inv_grav_enable)		affix_bits |= 0x80;
 
-			output.write_dword(num_affixes);
+			output.write((char*)lafx_id, 4);
 
-			if (timelimit_enable)
-			{
-				output.write((char*)lafx_id, 4);
-				output.write_dword(1);				// type = time limit
-				output.write_dword(timelimit_mins << 8 | timelimit_secs);
-			}
+			output.write_dword(affix_bits);
+
+			// timelimit
+			output.write_dword(timelimit_mins * 60 + timelimit_secs);
+
 			for (int i = 0; i < 3; i++)
 			{
-				if (collect_enable[i])
+				// collect amount
+				output.write_dword(collect_amount[i]);
+
+				// item name as null-terminated string
+				QByteArray obname = collect_item[i].toLocal8Bit();
+				for (int i = 0; i < obname.length(); i++)
 				{
-					output.write((char*)lafx_id, 4);
-					output.write_dword(2);			// type = collect
-					output.write_dword(collect_amount[i]);
-
-					// item name as null-terminated string
-					QByteArray obname = collect_item[i].toLocal8Bit();
-					for (int i = 0; i < obname.length(); i++)
-					{
-						output.write_byte(obname.at(i));
-					}
-					output.write_byte(0);	// null terminator
+					output.write_byte(obname.at(i));
 				}
+				output.write_byte(0);	// null terminator
 			}
-			if (dont_collect_enable)
 			{
-				output.write((char*)lafx_id, 4);
-				output.write_dword(3);				// type = don't collect
-
 				// item name as null-terminated string
 				QByteArray obname = dont_collect_item.toLocal8Bit();
 				for (int i = 0; i < obname.length(); i++)
@@ -2706,21 +2690,6 @@ void MainWindow::writeBLBFile(QString& filename)
 					output.write_byte(obname.at(i));
 				}
 				output.write_byte(0);	// null terminator
-			}
-			if (avoid_enable)
-			{
-				output.write((char*)lafx_id, 4);
-				output.write_dword(4);				// type = avoid hazards
-			}
-			if (exit_enable)
-			{
-				output.write((char*)lafx_id, 4);
-				output.write_dword(5);				// type = find exit
-			}
-			if (inv_grav_enable)
-			{
-				output.write((char*)lafx_id, 4);
-				output.write_dword(6);				// type = inverse gravity
 			}
 		}
 

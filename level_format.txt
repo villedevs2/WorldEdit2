@@ -12,7 +12,6 @@ n bytes		| Texture name (null-terminated)
 4 bytes		| Level Max X
 4 bytes		| Level Min Y
 4 bytes		| Level Max Y
-4 bytes		| Num level affixes
 n bytes		| Level affixes
 n bytes		| Objects
 4 bytes		| Number of tiles
@@ -61,19 +60,25 @@ Tile
 4 bytes		| Tile color (XRGB)
 32 bytes	| UV coords [4x UV-pairs]
 
-Level affix
+Level affixes
 -----------
 
 4 bytes		| Affix ID (LAFX)
-4 bytes		| Affix type
-n bytes		| Parameters (1-8, depending on affix type)
-
-Affix parameters
-----------------
-
-Time limit (1)		| 0 = Time: minutes (1 byte), seconds (1 byte)
-Collect	(2)		| 0 = Number of items, 1 = Collectable type (string)
-Don't collect (3)	| 0 = Collectable type
-Don't hit hazards (4)	| No params
-Find exit (5)		| No params
-Inverse gravity (6)	| No params
+4 bytes		| Affix bitmask
+		| Bit 0: Timelimit enable
+		| Bit 1: Collect 1 enable
+		| Bit 2: Collect 2 enable
+		| Bit 3: Collect 3 enable
+		| Bit 4: Don't collect enable
+		| Bit 5: Avoid hazards enable
+		| Bit 6: Find exit enable
+		| Bit 7: Inverse gravity enable
+		| Bit 8: Speedrun enable
+4 bytes		| Timelimit in seconds
+4 bytes		| Collect 1 item amount
+n bytes		| Collect 1 item type (string)
+4 bytes		| Collect 2 item amount
+n bytes		| Collect 2 item type (string)
+4 bytes		| Collect 3 item amount
+n bytes		| Collect 3 item type (string)
+n bytes		| Don't collect item type
