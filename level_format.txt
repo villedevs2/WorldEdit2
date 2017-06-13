@@ -76,9 +76,5 @@ Level affixes
 		| Bit 8: Speedrun enable
 4 bytes		| Timelimit in seconds
 4 bytes		| Collect 1 item amount
-n bytes		| Collect 1 item type (string)
 4 bytes		| Collect 2 item amount
-n bytes		| Collect 2 item type (string)
 4 bytes		| Collect 3 item amount
-n bytes		| Collect 3 item type (string)
-n bytes		| Don't collect item type

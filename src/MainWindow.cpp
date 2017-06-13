@@ -2673,23 +2673,6 @@ void MainWindow::writeBLBFile(QString& filename)
 			{
 				// collect amount
 				output.write_dword(collect_amount[i]);
-
-				// item name as null-terminated string
-				QByteArray obname = collect_item[i].toLocal8Bit();
-				for (int i = 0; i < obname.length(); i++)
-				{
-					output.write_byte(obname.at(i));
-				}
-				output.write_byte(0);	// null terminator
-			}
-			{
-				// item name as null-terminated string
-				QByteArray obname = dont_collect_item.toLocal8Bit();
-				for (int i = 0; i < obname.length(); i++)
-				{
-					output.write_byte(obname.at(i));
-				}
-				output.write_byte(0);	// null terminator
 			}
 		}
 
